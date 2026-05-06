@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Certificado</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #059669, #0f4c81);
+            color: #fff;
+            padding: 28px 24px;
+            text-align: center;
+        }
+
+        .badge-valid {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .card-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card-body { padding: 24px; }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
+            min-width: 110px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            flex: 1;
+        }
+
+        .btn-photos {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #16a085, #0f4c81);
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-photos:hover { opacity: 0.9; }
+
+        .card-footer {
+            text-align: center;
+            padding: 16px 24px;
+            font-size: 12px;
+            color: #aaa;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .error-container h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .error-container p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 48px 24px;
+            color: #888;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #0f4c81;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="card" id="card">
+        <div class="loading"><span class="spinner"></span></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        async function init() {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get("id");
+
+            if (!id) {
+                showError("Link invalido", "Este link nao contem um identificador de certificado.");
+                return;
+            }
+
+            try {
+                var certDoc = await db.collection("certificates").doc(id).get();
+                if (!certDoc.exists) {
+                    showError("Certificado nao encontrado", "Este certificado nao existe ou foi removido.");
+                    return;
+                }
+
+                var cert = certDoc.data();
+                var trainingDoc = await db.collection("trainings").doc(cert.trainingId).get();
+
+                if (!trainingDoc.exists) {
+                    showError("Treinamento nao encontrado", "Os dados do treinamento nao foram encontrados.");
+                    return;
+                }
+
+                var training = trainingDoc.data();
+                showCertificate(certDoc.id, cert, training);
+
+            } catch (e) {
+                console.error(e);
+                showError("Erro", "Nao foi possivel carregar os dados. Tente novamente.");
+            }
+        }
+
+        function showCertificate(id, cert, training) {
+            var card = document.getElementById("card");
+
+            var photosBtn = training.photosUrl
+                ? '<a href="' + escAttr(training.photosUrl) + '" target="_blank" rel="noopener" class="btn-photos">Ver Fotos do Treinamento</a>'
+                : '';
+
+            card.innerHTML =
+                '<div class="card-header">' +
+                    '<div class="badge-valid">&#10003; CERTIFICADO VALIDO</div>' +
+                    '<h1>' + escHtml(cert.studentName) + '</h1>' +
+                '</div>' +
+                '<div class="card-body">' +
+                    infoRow("Treinamento", training.title) +
+                    infoRow("Data", formatDate(training.date)) +
+                    infoRow("Local", training.location) +
+                    infoRow("Instrutor", training.instructor) +
+                    infoRow("Carga Horaria", training.duration) +
+                    infoRow("ID", id.substring(0, 8).toUpperCase()) +
+                    photosBtn +
+                '</div>' +
+                '<div class="card-footer">' +
+                    'Certificado verificado automaticamente' +
+                '</div>';
+        }
+
+        function infoRow(label, value) {
+            if (!value) return "";
+            return '<div class="info-row">' +
+                '<span class="info-label">' + escHtml(label) + '</span>' +
+                '<span class="info-value">' + escHtml(value) + '</span>' +
+                '</div>';
+        }
+
+        function showError(title, msg) {
+            document.getElementById("card").innerHTML =
+                '<div class="error-container">' +
+                    '<h2>' + escHtml(title) + '</h2>' +
+                    '<p>' + escHtml(msg) + '</p>' +
+                '</div>';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            var parts = dateStr.split("-");
+            if (parts.length === 3) return parts[2] + "/" + parts[1] + "/" + parts[0];
+            return dateStr;
+        }
+
+        function escHtml(s) {
+            var d = document.createElement("div");
+            d.textContent = s || "";
+            return d.innerHTML;
+        }
+
+        function escAttr(s) {
+            return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        init();
+    </script>
+</body>
+</html>

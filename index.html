@@ -3,260 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de QR Code - Treinamentos</title>
+    <title>Meus Certificados</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f0f2f5;
+            color: #1a1a2e;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
         }
 
-        .container {
+        .header {
+            background: linear-gradient(135deg, #0f4c81, #16a085);
+            color: #fff;
+            text-align: center;
+            padding: 48px 20px 40px;
+        }
+
+        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .header p { font-size: 15px; opacity: 0.85; }
+
+        .search-box {
+            max-width: 480px;
+            margin: -28px auto 0;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-card {
             background: #fff;
             border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            max-width: 520px;
-            width: 100%;
-            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            padding: 24px;
         }
 
-        h1 {
-            font-size: 22px;
-            color: #1a1a2e;
-            margin-bottom: 4px;
+        .input-group {
+            display: flex;
+            gap: 10px;
         }
 
-        .subtitle {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 24px;
-        }
-
-        .step {
-            margin-bottom: 20px;
-        }
-
-        .step-number {
-            display: inline-block;
-            background: #0f4c81;
-            color: #fff;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 28px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-right: 8px;
-        }
-
-        .step-label {
-            font-size: 15px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .step-hint {
-            font-size: 13px;
-            color: #888;
-            margin-top: 4px;
-            margin-left: 36px;
-        }
-
-        input[type="text"] {
-            width: 100%;
+        .input-group input {
+            flex: 1;
             padding: 14px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 15px;
-            margin-top: 8px;
             outline: none;
             transition: border-color 0.2s;
         }
 
-        input[type="text"]:focus {
-            border-color: #0f4c81;
-        }
+        .input-group input:focus { border-color: #0f4c81; }
+
+        .input-group input::placeholder { color: #aaa; }
 
         .btn {
-            display: block;
-            width: 100%;
-            padding: 16px;
+            padding: 14px 24px;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s;
-            margin-top: 12px;
+            white-space: nowrap;
         }
 
         .btn:hover { opacity: 0.9; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-generate {
+        .btn-primary {
             background: linear-gradient(135deg, #0f4c81, #16a085);
             color: #fff;
         }
 
-        .btn-download {
-            background: #27ae60;
-            color: #fff;
+        .content {
+            max-width: 480px;
+            margin: 24px auto;
+            padding: 0 20px;
         }
 
-        .qr-result {
+        .message {
             text-align: center;
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid #f0f0f0;
-            display: none;
+            padding: 32px 16px;
+            color: #888;
+            font-size: 14px;
         }
 
-        .qr-result img {
-            border: 8px solid #fff;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            border-radius: 8px;
+        .message.error { color: #e74c3c; }
+
+        .cert-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: box-shadow 0.2s;
         }
 
-        .qr-result p {
+        .cert-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+        .cert-card h3 {
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .cert-meta {
             font-size: 13px;
             color: #888;
-            margin-top: 12px;
-        }
-
-        .error {
-            color: #e74c3c;
-            font-size: 13px;
-            margin-top: 8px;
-            display: none;
-        }
-
-        .instructions {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 24px;
-            font-size: 13px;
-            color: #666;
+            margin-bottom: 12px;
             line-height: 1.6;
         }
 
-        .instructions strong { color: #333; }
+        .cert-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-sm:hover { opacity: 0.9; }
+
+        .btn-view {
+            background: #0f4c81;
+            color: #fff;
+        }
+
+        .btn-photos {
+            background: #16a085;
+            color: #fff;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 32px 20px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .footer a { color: #0f4c81; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #0f4c81;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .input-group { flex-direction: column; }
+            .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Gerador de QR Code</h1>
-        <p class="subtitle">Cole o link do Google Drive e gere o QR Code para o certificado</p>
+    <div class="header">
+        <h1>Meus Certificados</h1>
+        <p>Digite seu email para encontrar seus certificados de treinamento</p>
+    </div>
 
-        <div class="instructions">
-            <strong>Como usar:</strong><br>
-            1. Suba as fotos do treinamento em uma pasta no Google Drive<br>
-            2. Compartilhe a pasta: clique direito &rarr; Compartilhar &rarr; "Qualquer pessoa com o link"<br>
-            3. Copie o link e cole abaixo<br>
-            4. Clique em "Gerar QR Code" e depois "Baixar"<br>
-            5. Insira a imagem do QR Code no certificado
-        </div>
-
-        <div class="step">
-            <span class="step-number">1</span>
-            <span class="step-label">Nome do treinamento</span>
-            <p class="step-hint">Ex: NR-35 Turma A - 06/05/2026</p>
-            <input type="text" id="trainingName" placeholder="Digite o nome do treinamento">
-        </div>
-
-        <div class="step">
-            <span class="step-number">2</span>
-            <span class="step-label">Link do Google Drive</span>
-            <p class="step-hint">Cole aqui o link da pasta compartilhada</p>
-            <input type="text" id="driveLink" placeholder="https://drive.google.com/drive/folders/...">
-            <p class="error" id="error">Cole um link válido do Google Drive</p>
-        </div>
-
-        <button class="btn btn-generate" id="btnGenerate" onclick="generateQR()">
-            Gerar QR Code
-        </button>
-
-        <div class="qr-result" id="qrResult">
-            <img id="qrImage" src="" alt="QR Code" width="300" height="300">
-            <p id="qrLabel"></p>
-            <button class="btn btn-download" onclick="downloadQR()">
-                Baixar QR Code (PNG)
-            </button>
+    <div class="search-box">
+        <div class="search-card">
+            <div class="input-group">
+                <input type="email" id="emailInput" placeholder="seu@email.com" autocomplete="email">
+                <button class="btn btn-primary" id="btnSearch" onclick="searchCertificates()">Buscar</button>
+            </div>
         </div>
     </div>
 
+    <div class="content" id="results"></div>
+
+    <div class="footer">
+        <a href="admin.html">Área Administrativa</a>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
-        function generateQR() {
-            var link = document.getElementById("driveLink").value.trim();
-            var name = document.getElementById("trainingName").value.trim();
-            var error = document.getElementById("error");
-            var result = document.getElementById("qrResult");
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
 
-            error.style.display = "none";
-            result.style.display = "none";
+        document.getElementById("emailInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") searchCertificates();
+        });
 
-            if (!link) {
-                error.textContent = "Cole o link do Google Drive";
-                error.style.display = "block";
+        async function searchCertificates() {
+            var email = document.getElementById("emailInput").value.trim().toLowerCase();
+            var results = document.getElementById("results");
+            var btn = document.getElementById("btnSearch");
+
+            if (!email) {
+                results.innerHTML = '<div class="message error">Digite seu email</div>';
                 return;
             }
 
-            // Aceita qualquer link (Google Drive, OneDrive, Notion, etc)
-            if (!link.startsWith("http")) {
-                error.textContent = "O link precisa comecar com http:// ou https://";
-                error.style.display = "block";
-                return;
+            btn.disabled = true;
+            btn.textContent = "";
+            btn.innerHTML = '<span class="spinner"></span>';
+            results.innerHTML = "";
+
+            try {
+                var snap = await db.collection("certificates")
+                    .where("studentEmail", "==", email)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                if (snap.empty) {
+                    results.innerHTML = '<div class="message">Nenhum certificado encontrado para este email.</div>';
+                    return;
+                }
+
+                // Buscar dados dos treinamentos
+                var trainingIds = [...new Set(snap.docs.map(function(d) { return d.data().trainingId; }))];
+                var trainings = {};
+                for (var i = 0; i < trainingIds.length; i++) {
+                    var tDoc = await db.collection("trainings").doc(trainingIds[i]).get();
+                    if (tDoc.exists) trainings[trainingIds[i]] = tDoc.data();
+                }
+
+                var html = "";
+                snap.docs.forEach(function(doc) {
+                    var cert = doc.data();
+                    var t = trainings[cert.trainingId] || {};
+                    html += renderCertCard(doc.id, cert, t);
+                });
+                results.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                results.innerHTML = '<div class="message error">Erro ao buscar certificados. Tente novamente.</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Buscar";
             }
-
-            // Gera QR Code via API gratuita
-            var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
-
-            var img = document.getElementById("qrImage");
-            img.src = qrUrl;
-            img.onload = function() {
-                result.style.display = "block";
-                document.getElementById("qrLabel").textContent = name || "QR Code gerado";
-            };
-            img.onerror = function() {
-                error.textContent = "Erro ao gerar QR Code. Verifique sua conexao com a internet.";
-                error.style.display = "block";
-            };
         }
 
-        function downloadQR() {
-            var img = document.getElementById("qrImage");
-            var name = document.getElementById("trainingName").value.trim();
-            var fileName = name
-                ? "qrcode-" + name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
-                : "qrcode-treinamento.png";
+        function renderCertCard(id, cert, training) {
+            var date = training.date ? formatDate(training.date) : "";
+            var photosBtn = training.photosUrl
+                ? '<a href="' + escAttr(training.photosUrl) + '" target="_blank" class="btn-sm btn-photos">Ver Fotos</a>'
+                : "";
 
-            // Baixa a imagem
-            var canvas = document.createElement("canvas");
-            canvas.width = 600;
-            canvas.height = 600;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, 600, 600);
-
-            var a = document.createElement("a");
-            a.href = canvas.toDataURL("image/png");
-            a.download = fileName;
-            a.click();
+            return '<div class="cert-card">' +
+                '<span class="badge">Certificado Verificado</span>' +
+                '<h3>' + escHtml(training.title || "Treinamento") + '</h3>' +
+                '<div class="cert-meta">' +
+                    (date ? 'Data: ' + escHtml(date) + '<br>' : '') +
+                    (training.duration ? 'Carga Horaria: ' + escHtml(training.duration) + '<br>' : '') +
+                    (training.instructor ? 'Instrutor: ' + escHtml(training.instructor) : '') +
+                '</div>' +
+                '<div class="cert-actions">' +
+                    '<a href="certificado.html?id=' + encodeURIComponent(id) + '" class="btn-sm btn-view">Ver Certificado</a>' +
+                    photosBtn +
+                '</div>' +
+            '</div>';
         }
 
-        // Gerar ao pressionar Enter
-        document.getElementById("driveLink").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") generateQR();
-        });
-        document.getElementById("trainingName").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") document.getElementById("driveLink").focus();
-        });
+        function formatDate(dateStr) {
+            var parts = dateStr.split("-");
+            if (parts.length === 3) return parts[2] + "/" + parts[1] + "/" + parts[0];
+            return dateStr;
+        }
+
+        function escHtml(s) {
+            var d = document.createElement("div");
+            d.textContent = s || "";
+            return d.innerHTML;
+        }
+
+        function escAttr(s) {
+            return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
     </script>
 </body>
 </html>

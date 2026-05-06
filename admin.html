@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Certificados</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        /* ===== NAV ===== */
+        .nav {
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f4c81;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .nav-user {
+            background: #f0f2f5;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary { background: linear-gradient(135deg, #0f4c81, #16a085); color: #fff; }
+        .btn-success { background: #059669; color: #fff; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-secondary { background: #e5e7eb; color: #374151; }
+        .btn-google { background: #fff; color: #333; border: 2px solid #e0e0e0; font-size: 16px; padding: 16px 32px; }
+        .btn-google:hover { background: #f8f8f8; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+        .btn-block { display: block; width: 100%; text-align: center; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+        }
+
+        .card h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        /* ===== STATS ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f4c81;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* ===== FORMS ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus { border-color: #0f4c81; }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* ===== LISTS ===== */
+        .training-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .training-item:hover { background: #f8f9fa; }
+
+        .training-info h4 {
+            font-size: 15px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .training-info p {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .training-count {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .student-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .student-row:last-child { border-bottom: none; }
+
+        .student-name { font-weight: 500; color: #333; }
+        .student-email { color: #888; font-size: 13px; }
+
+        /* ===== LOGIN ===== */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-card h1 { font-size: 24px; margin-bottom: 8px; }
+        .login-card p { color: #888; margin-bottom: 32px; font-size: 14px; }
+
+        /* ===== SECTIONS ===== */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* ===== MISC ===== */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #0f4c81;
+            text-decoration: none;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .empty-state p { font-size: 14px; margin-bottom: 16px; }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #0f4c81;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .denied-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .denied-container h2 { font-size: 22px; margin-bottom: 8px; color: #dc2626; }
+        .denied-container p { color: #888; margin-bottom: 24px; }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .top-bar h2 { margin-bottom: 0; font-size: 20px; }
+
+        .divider { height: 1px; background: #f0f0f0; margin: 20px 0; }
+
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+            .nav { padding: 10px 16px; }
+            .container { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<div class="nav" id="navBar" style="display:none">
+    <div class="nav-brand">Painel Admin</div>
+    <div class="nav-right">
+        <span class="nav-user" id="navUser"></span>
+        <button class="btn btn-sm btn-secondary" onclick="logout()">Sair</button>
+    </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginSection">
+    <div class="login-container">
+        <div class="login-card">
+            <h1>Painel Administrativo</h1>
+            <p>Faça login para gerenciar treinamentos e certificados</p>
+            <button class="btn btn-google" onclick="loginWithGoogle()">
+                Entrar com Google
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ACCESS DENIED ===== -->
+<div id="deniedSection" style="display:none">
+    <div class="denied-container">
+        <h2>Acesso Negado</h2>
+        <p>Sua conta não tem permissão para acessar o painel administrativo.</p>
+        <button class="btn btn-secondary" onclick="logout()">Sair</button>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboardSection" class="section">
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="statTrainings">0</div>
+                <div class="stat-label">Treinamentos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statCertificates">0</div>
+                <div class="stat-label">Certificados</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="top-bar">
+                <h2>Treinamentos</h2>
+                <button class="btn btn-primary btn-sm" onclick="showSection('formSection'); clearForm();">+ Novo</button>
+            </div>
+            <div id="trainingList">
+                <div class="empty-state">
+                    <p>Nenhum treinamento cadastrado ainda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TRAINING FORM ===== -->
+<div id="formSection" class="section">
+    <div class="container">
+        <a class="back-link" onclick="showSection('dashboardSection'); loadDashboard();">&#8592; Voltar</a>
+        <div class="card">
+            <h2 id="formTitle">Novo Treinamento</h2>
+            <input type="hidden" id="editingId">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Titulo do Treinamento *</label>
+                    <input type="text" id="fTitle" placeholder="Ex: NR-35 - Trabalho em Altura">
+                </div>
+                <div class="form-group">
+                    <label>Data *</label>
+                    <input type="date" id="fDate">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Local</label>
+                    <input type="text" id="fLocation" placeholder="Ex: São Paulo, SP">
+                </div>
+                <div class="form-group">
+                    <label>Instrutor</label>
+                    <input type="text" id="fInstructor" placeholder="Nome do instrutor">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Carga Horaria</label>
+                    <input type="text" id="fDuration" placeholder="Ex: 8 horas">
+                </div>
+                <div class="form-group">
+                    <label>Link das Fotos (Google Drive)</label>
+                    <input type="url" id="fPhotosUrl" placeholder="https://drive.google.com/drive/folders/...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descricao</label>
+                <textarea id="fDescription" placeholder="Descrição do treinamento (opcional)"></textarea>
+            </div>
+
+            <div id="formAlert"></div>
+
+            <button class="btn btn-primary btn-block" id="btnSaveTraining" onclick="saveTraining()">
+                Salvar Treinamento
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TRAINING DETAIL ===== -->
+<div id="detailSection" class="section">
+    <div class="container">
+        <a class="back-link" onclick="showSection('dashboardSection'); loadDashboard();">&#8592; Voltar</a>
+
+        <div class="card" id="trainingDetail"></div>
+
+        <div class="card">
+            <h3>Adicionar Alunos em Lote</h3>
+            <div class="form-group">
+                <textarea id="studentsBatch" rows="6" placeholder="Cole a lista de alunos (um por linha):&#10;&#10;Nome Completo, email@exemplo.com&#10;Maria Silva, maria@email.com&#10;João Santos, joao@email.com"></textarea>
+                <p class="form-hint">Formato: Nome, Email (um aluno por linha)</p>
+            </div>
+            <div id="batchAlert"></div>
+            <button class="btn btn-success btn-block" id="btnGenerateCerts" onclick="generateCertificates()">
+                Gerar Certificados
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="top-bar">
+                <h3>Certificados Gerados</h3>
+                <span id="certCount" style="font-size:13px;color:#888"></span>
+            </div>
+            <div id="studentList">
+                <div class="empty-state">
+                    <p>Nenhum certificado gerado ainda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+
+    var currentTrainingId = null;
+
+    // ===== AUTH =====
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            if (user.email === ADMIN_EMAIL) {
+                document.getElementById("loginSection").style.display = "none";
+                document.getElementById("deniedSection").style.display = "none";
+                document.getElementById("navBar").style.display = "flex";
+                document.getElementById("navUser").textContent = user.email;
+                showSection("dashboardSection");
+                loadDashboard();
+            } else {
+                document.getElementById("loginSection").style.display = "none";
+                document.getElementById("deniedSection").style.display = "block";
+            }
+        } else {
+            document.getElementById("loginSection").style.display = "block";
+            document.getElementById("deniedSection").style.display = "none";
+            document.getElementById("navBar").style.display = "none";
+            hideAllSections();
+        }
+    });
+
+    function loginWithGoogle() {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(function(err) {
+            alert("Erro ao fazer login: " + err.message);
+        });
+    }
+
+    function logout() {
+        auth.signOut();
+    }
+
+    // ===== NAVIGATION =====
+    function hideAllSections() {
+        document.querySelectorAll(".section").forEach(function(s) { s.classList.remove("active"); });
+    }
+
+    function showSection(id) {
+        hideAllSections();
+        document.getElementById(id).classList.add("active");
+    }
+
+    // ===== DASHBOARD =====
+    async function loadDashboard() {
+        try {
+            var tSnap = await db.collection("trainings").orderBy("createdAt", "desc").get();
+            var cSnap = await db.collection("certificates").get();
+
+            document.getElementById("statTrainings").textContent = tSnap.size;
+            document.getElementById("statCertificates").textContent = cSnap.size;
+
+            // Contar certificados por treinamento
+            var certCounts = {};
+            cSnap.docs.forEach(function(d) {
+                var tid = d.data().trainingId;
+                certCounts[tid] = (certCounts[tid] || 0) + 1;
+            });
+
+            if (tSnap.empty) {
+                document.getElementById("trainingList").innerHTML =
+                    '<div class="empty-state"><p>Nenhum treinamento cadastrado.</p>' +
+                    '<button class="btn btn-primary btn-sm" onclick="showSection(\'formSection\'); clearForm();">Criar Primeiro Treinamento</button></div>';
+                return;
+            }
+
+            var html = "";
+            tSnap.docs.forEach(function(doc) {
+                var t = doc.data();
+                var count = certCounts[doc.id] || 0;
+                html += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
+                    '<div class="training-info">' +
+                        '<h4>' + escHtml(t.title) + '</h4>' +
+                        '<p>' + escHtml(formatDate(t.date)) + (t.location ? ' &mdash; ' + escHtml(t.location) : '') + '</p>' +
+                    '</div>' +
+                    '<span class="training-count">' + count + ' certificado' + (count !== 1 ? 's' : '') + '</span>' +
+                '</div>';
+            });
+            document.getElementById("trainingList").innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ===== TRAINING FORM =====
+    function clearForm() {
+        document.getElementById("formTitle").textContent = "Novo Treinamento";
+        document.getElementById("editingId").value = "";
+        document.getElementById("fTitle").value = "";
+        document.getElementById("fDate").value = "";
+        document.getElementById("fLocation").value = "";
+        document.getElementById("fInstructor").value = "";
+        document.getElementById("fDuration").value = "";
+        document.getElementById("fPhotosUrl").value = "";
+        document.getElementById("fDescription").value = "";
+        document.getElementById("formAlert").innerHTML = "";
+    }
+
+    async function saveTraining() {
+        var title = document.getElementById("fTitle").value.trim();
+        var date = document.getElementById("fDate").value;
+        var alert = document.getElementById("formAlert");
+        var btn = document.getElementById("btnSaveTraining");
+
+        if (!title || !date) {
+            alert.innerHTML = '<div class="alert alert-error">Preencha pelo menos o titulo e a data.</div>';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        var data = {
+            title: title,
+            date: date,
+            location: document.getElementById("fLocation").value.trim(),
+            instructor: document.getElementById("fInstructor").value.trim(),
+            duration: document.getElementById("fDuration").value.trim(),
+            photosUrl: document.getElementById("fPhotosUrl").value.trim(),
+            description: document.getElementById("fDescription").value.trim(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            var editId = document.getElementById("editingId").value;
+            if (editId) {
+                await db.collection("trainings").doc(editId).update(data);
+            } else {
+                await db.collection("trainings").add(data);
+            }
+            showSection("dashboardSection");
+            loadDashboard();
+        } catch (e) {
+            console.error(e);
+            alert.innerHTML = '<div class="alert alert-error">Erro ao salvar: ' + escHtml(e.message) + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Salvar Treinamento";
+        }
+    }
+
+    // ===== TRAINING DETAIL =====
+    async function openTrainingDetail(trainingId) {
+        currentTrainingId = trainingId;
+        showSection("detailSection");
+
+        document.getElementById("trainingDetail").innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span></div>';
+        document.getElementById("studentList").innerHTML = "";
+        document.getElementById("studentsBatch").value = "";
+        document.getElementById("batchAlert").innerHTML = "";
+
+        try {
+            var tDoc = await db.collection("trainings").doc(trainingId).get();
+            if (!tDoc.exists) return;
+            var t = tDoc.data();
+
+            var photosLink = t.photosUrl
+                ? '<a href="' + escAttr(t.photosUrl) + '" target="_blank" style="color:#16a085;text-decoration:none;font-size:13px">Ver fotos</a>'
+                : '';
+
+            document.getElementById("trainingDetail").innerHTML =
+                '<div class="top-bar">' +
+                    '<h2>' + escHtml(t.title) + '</h2>' +
+                    '<div style="display:flex;gap:8px">' +
+                        '<button class="btn btn-sm btn-secondary" onclick="editTraining(\'' + trainingId + '\')">Editar</button>' +
+                        '<button class="btn btn-sm btn-danger" onclick="deleteTraining(\'' + trainingId + '\')">Excluir</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="font-size:14px;color:#666;line-height:1.8">' +
+                    (t.date ? '<strong>Data:</strong> ' + escHtml(formatDate(t.date)) + '<br>' : '') +
+                    (t.location ? '<strong>Local:</strong> ' + escHtml(t.location) + '<br>' : '') +
+                    (t.instructor ? '<strong>Instrutor:</strong> ' + escHtml(t.instructor) + '<br>' : '') +
+                    (t.duration ? '<strong>Carga Horaria:</strong> ' + escHtml(t.duration) + '<br>' : '') +
+                    (t.description ? '<strong>Descricao:</strong> ' + escHtml(t.description) + '<br>' : '') +
+                    photosLink +
+                '</div>';
+
+            loadCertificates(trainingId);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function loadCertificates(trainingId) {
+        try {
+            var snap = await db.collection("certificates")
+                .where("trainingId", "==", trainingId)
+                .orderBy("createdAt", "desc")
+                .get();
+
+            document.getElementById("certCount").textContent = snap.size + " certificado" + (snap.size !== 1 ? "s" : "");
+
+            if (snap.empty) {
+                document.getElementById("studentList").innerHTML = '<div class="empty-state"><p>Nenhum certificado gerado ainda.</p></div>';
+                return;
+            }
+
+            var html = "";
+            snap.docs.forEach(function(doc) {
+                var c = doc.data();
+                html += '<div class="student-row">' +
+                    '<div>' +
+                        '<span class="student-name">' + escHtml(c.studentName) + '</span><br>' +
+                        '<span class="student-email">' + escHtml(c.studentEmail) + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:6px">' +
+                        '<a href="certificado.html?id=' + doc.id + '" target="_blank" class="btn btn-sm btn-secondary">Ver</a>' +
+                        '<button class="btn btn-sm btn-danger" onclick="deleteCertificate(\'' + doc.id + '\')">X</button>' +
+                    '</div>' +
+                '</div>';
+            });
+            document.getElementById("studentList").innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ===== BATCH GENERATE =====
+    async function generateCertificates() {
+        var raw = document.getElementById("studentsBatch").value.trim();
+        var alert = document.getElementById("batchAlert");
+        var btn = document.getElementById("btnGenerateCerts");
+
+        if (!raw) {
+            alert.innerHTML = '<div class="alert alert-error">Cole a lista de alunos.</div>';
+            return;
+        }
+
+        // Parse: aceita "Nome, Email" ou "Nome; Email" ou "Nome - Email"
+        var lines = raw.split("\n").map(function(l) { return l.trim(); }).filter(Boolean);
+        var students = [];
+        var errors = [];
+
+        lines.forEach(function(line, i) {
+            var parts = line.split(/[,;\t]+/).map(function(p) { return p.trim(); });
+            if (parts.length < 2) {
+                errors.push("Linha " + (i + 1) + ": formato incorreto (" + line + ")");
+                return;
+            }
+            var name = parts[0];
+            var email = parts[1].toLowerCase();
+            if (!email.includes("@")) {
+                errors.push("Linha " + (i + 1) + ": email invalido (" + email + ")");
+                return;
+            }
+            students.push({ name: name, email: email });
+        });
+
+        if (errors.length > 0) {
+            alert.innerHTML = '<div class="alert alert-error">' + errors.join("<br>") + '</div>';
+            return;
+        }
+
+        if (students.length === 0) {
+            alert.innerHTML = '<div class="alert alert-error">Nenhum aluno encontrado na lista.</div>';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Gerando ' + students.length + ' certificado(s)...';
+        alert.innerHTML = "";
+
+        try {
+            var batch = db.batch();
+            students.forEach(function(s) {
+                var ref = db.collection("certificates").doc();
+                batch.set(ref, {
+                    trainingId: currentTrainingId,
+                    studentName: s.name,
+                    studentEmail: s.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+
+            document.getElementById("studentsBatch").value = "";
+            alert.innerHTML = '<div class="alert alert-success">' + students.length + ' certificado(s) gerado(s) com sucesso!</div>';
+            loadCertificates(currentTrainingId);
+            // Atualiza stats
+            loadDashboard();
+
+        } catch (e) {
+            console.error(e);
+            alert.innerHTML = '<div class="alert alert-error">Erro ao gerar certificados: ' + escHtml(e.message) + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Gerar Certificados";
+        }
+    }
+
+    // ===== EDIT / DELETE =====
+    async function editTraining(id) {
+        var doc = await db.collection("trainings").doc(id).get();
+        var t = doc.data();
+        document.getElementById("formTitle").textContent = "Editar Treinamento";
+        document.getElementById("editingId").value = id;
+        document.getElementById("fTitle").value = t.title || "";
+        document.getElementById("fDate").value = t.date || "";
+        document.getElementById("fLocation").value = t.location || "";
+        document.getElementById("fInstructor").value = t.instructor || "";
+        document.getElementById("fDuration").value = t.duration || "";
+        document.getElementById("fPhotosUrl").value = t.photosUrl || "";
+        document.getElementById("fDescription").value = t.description || "";
+        document.getElementById("formAlert").innerHTML = "";
+        showSection("formSection");
+    }
+
+    async function deleteTraining(id) {
+        if (!confirm("Excluir este treinamento e TODOS os certificados associados?")) return;
+
+        try {
+            // Deletar certificados associados
+            var snap = await db.collection("certificates").where("trainingId", "==", id).get();
+            var batch = db.batch();
+            snap.docs.forEach(function(doc) { batch.delete(doc.ref); });
+            batch.delete(db.collection("trainings").doc(id));
+            await batch.commit();
+
+            showSection("dashboardSection");
+            loadDashboard();
+        } catch (e) {
+            alert("Erro ao excluir: " + e.message);
+        }
+    }
+
+    async function deleteCertificate(id) {
+        if (!confirm("Excluir este certificado?")) return;
+        try {
+            await db.collection("certificates").doc(id).delete();
+            loadCertificates(currentTrainingId);
+        } catch (e) {
+            alert("Erro ao excluir: " + e.message);
+        }
+    }
+
+    // ===== HELPERS =====
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        var parts = dateStr.split("-");
+        if (parts.length === 3) return parts[2] + "/" + parts[1] + "/" + parts[0];
+        return dateStr;
+    }
+
+    function escHtml(s) {
+        var d = document.createElement("div");
+        d.textContent = s || "";
+        return d.innerHTML;
+    }
+
+    function escAttr(s) {
+        return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+</script>
+</body>
+</html>
