@@ -10,19 +10,19 @@
 // ============================================================
 
 const firebaseConfig = {
-    apiKey: "COLE_AQUI",
-    authDomain: "COLE_AQUI",
-    projectId: "COLE_AQUI",
-    storageBucket: "COLE_AQUI",
-    messagingSenderId: "COLE_AQUI",
-    appId: "COLE_AQUI"
+    apiKey: "AIzaSyD1n7m_QPK_8-dGjDf5LGtCyubQLRd9rSo",
+    authDomain: "certificados-f8103.firebaseapp.com",
+    projectId: "certificados-f8103",
+    storageBucket: "certificados-f8103.firebasestorage.app",
+    messagingSenderId: "1024241909339",
+    appId: "1:1024241909339:web:5be356e31fde1a420c497e"
 };
 
 // ============================================================
 // Email do administrador (quem pode criar treinamentos e certificados)
 // Use o mesmo email da conta Google que vai fazer login no admin
 // ============================================================
-const ADMIN_EMAIL = "seu-email@gmail.com";
+const ADMIN_EMAIL = "martins.victor212004@gmail.com";
 
 // ============================================================
 // URL base do site (GitHub Pages)
