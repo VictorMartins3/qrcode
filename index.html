@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code - Treinamentos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            max-width: 520px;
+            width: 100%;
+            padding: 32px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #0f4c81;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .step-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .step-hint {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+            margin-left: 36px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-top: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #0f4c81;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #0f4c81, #16a085);
+            color: #fff;
+        }
+
+        .btn-download {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        .qr-result {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+            display: none;
+        }
+
+        .qr-result img {
+            border: 8px solid #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .qr-result p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 12px;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .instructions strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de QR Code</h1>
+        <p class="subtitle">Cole o link do Google Drive e gere o QR Code para o certificado</p>
+
+        <div class="instructions">
+            <strong>Como usar:</strong><br>
+            1. Suba as fotos do treinamento em uma pasta no Google Drive<br>
+            2. Compartilhe a pasta: clique direito &rarr; Compartilhar &rarr; "Qualquer pessoa com o link"<br>
+            3. Copie o link e cole abaixo<br>
+            4. Clique em "Gerar QR Code" e depois "Baixar"<br>
+            5. Insira a imagem do QR Code no certificado
+        </div>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <span class="step-label">Nome do treinamento</span>
+            <p class="step-hint">Ex: NR-35 Turma A - 06/05/2026</p>
+            <input type="text" id="trainingName" placeholder="Digite o nome do treinamento">
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <span class="step-label">Link do Google Drive</span>
+            <p class="step-hint">Cole aqui o link da pasta compartilhada</p>
+            <input type="text" id="driveLink" placeholder="https://drive.google.com/drive/folders/...">
+            <p class="error" id="error">Cole um link válido do Google Drive</p>
+        </div>
+
+        <button class="btn btn-generate" id="btnGenerate" onclick="generateQR()">
+            Gerar QR Code
+        </button>
+
+        <div class="qr-result" id="qrResult">
+            <img id="qrImage" src="" alt="QR Code" width="300" height="300">
+            <p id="qrLabel"></p>
+            <button class="btn btn-download" onclick="downloadQR()">
+                Baixar QR Code (PNG)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            var link = document.getElementById("driveLink").value.trim();
+            var name = document.getElementById("trainingName").value.trim();
+            var error = document.getElementById("error");
+            var result = document.getElementById("qrResult");
+
+            error.style.display = "none";
+            result.style.display = "none";
+
+            if (!link) {
+                error.textContent = "Cole o link do Google Drive";
+                error.style.display = "block";
+                return;
+            }
+
+            // Aceita qualquer link (Google Drive, OneDrive, Notion, etc)
+            if (!link.startsWith("http")) {
+                error.textContent = "O link precisa comecar com http:// ou https://";
+                error.style.display = "block";
+                return;
+            }
+
+            // Gera QR Code via API gratuita
+            var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
+
+            var img = document.getElementById("qrImage");
+            img.src = qrUrl;
+            img.onload = function() {
+                result.style.display = "block";
+                document.getElementById("qrLabel").textContent = name || "QR Code gerado";
+            };
+            img.onerror = function() {
+                error.textContent = "Erro ao gerar QR Code. Verifique sua conexao com a internet.";
+                error.style.display = "block";
+            };
+        }
+
+        function downloadQR() {
+            var img = document.getElementById("qrImage");
+            var name = document.getElementById("trainingName").value.trim();
+            var fileName = name
+                ? "qrcode-" + name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
+                : "qrcode-treinamento.png";
+
+            // Baixa a imagem
+            var canvas = document.createElement("canvas");
+            canvas.width = 600;
+            canvas.height = 600;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, 600, 600);
+
+            var a = document.createElement("a");
+            a.href = canvas.toDataURL("image/png");
+            a.download = fileName;
+            a.click();
+        }
+
+        // Gerar ao pressionar Enter
+        document.getElementById("driveLink").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") generateQR();
+        });
+        document.getElementById("trainingName").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") document.getElementById("driveLink").focus();
+        });
+    </script>
+</body>
+</html>
