@@ -312,6 +312,48 @@
 
         .divider { height: 1px; background: #f0f0f0; margin: 20px 0; }
 
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { border-color: #0f4c81; color: #0f4c81; }
+        .tab.active { background: #0f4c81; color: #fff; border-color: #0f4c81; }
+
+        /* ===== QR ===== */
+        .qr-result {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .qr-result img {
+            border: 8px solid #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .qr-result p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 12px;
+        }
+
         @media (max-width: 600px) {
             .form-row { grid-template-columns: 1fr; }
             .stats { grid-template-columns: 1fr; }
@@ -356,25 +398,66 @@
 <!-- ===== DASHBOARD ===== -->
 <div id="dashboardSection" class="section">
     <div class="container">
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="statTrainings">0</div>
-                <div class="stat-label">Treinamentos</div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('trainings')">Treinamentos</button>
+            <button class="tab" onclick="switchTab('qrcode')">Gerar QR Code</button>
+        </div>
+
+        <!-- TAB: Treinamentos -->
+        <div id="tabTrainings">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="statTrainings">0</div>
+                    <div class="stat-label">Treinamentos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statCertificates">0</div>
+                    <div class="stat-label">Certificados</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="statCertificates">0</div>
-                <div class="stat-label">Certificados</div>
+
+            <div class="card">
+                <div class="top-bar">
+                    <h2>Treinamentos</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showSection('formSection'); clearForm();">+ Novo</button>
+                </div>
+                <div id="trainingList">
+                    <div class="empty-state">
+                        <p>Nenhum treinamento cadastrado ainda.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="top-bar">
-                <h2>Treinamentos</h2>
-                <button class="btn btn-primary btn-sm" onclick="showSection('formSection'); clearForm();">+ Novo</button>
-            </div>
-            <div id="trainingList">
-                <div class="empty-state">
-                    <p>Nenhum treinamento cadastrado ainda.</p>
+        <!-- TAB: QR Code -->
+        <div id="tabQrcode" style="display:none">
+            <div class="card">
+                <h2>Gerar QR Code</h2>
+                <p style="color:#888;font-size:14px;margin-bottom:20px">Cole o link do Google Drive com as fotos do treinamento e gere o QR Code para o certificado.</p>
+
+                <div class="form-group">
+                    <label>Nome do treinamento</label>
+                    <input type="text" id="qrName" placeholder="Ex: NR-35 Turma A - 06/05/2026">
+                </div>
+
+                <div class="form-group">
+                    <label>Link do Google Drive</label>
+                    <input type="text" id="qrLink" placeholder="https://drive.google.com/drive/folders/...">
+                    <p class="form-hint">Compartilhe a pasta como "Qualquer pessoa com o link" antes de colar aqui</p>
+                </div>
+
+                <div id="qrAlert"></div>
+
+                <button class="btn btn-primary btn-block" onclick="generateQR()">
+                    Gerar QR Code
+                </button>
+
+                <div class="qr-result" id="qrResult" style="display:none">
+                    <img id="qrImage" src="" alt="QR Code" width="300" height="300">
+                    <p id="qrLabel"></p>
+                    <button class="btn btn-success btn-block" onclick="downloadQR()" style="margin-top:12px">
+                        Baixar QR Code (PNG)
+                    </button>
                 </div>
             </div>
         </div>
@@ -815,6 +898,65 @@
         } catch (e) {
             alert("Erro ao excluir: " + e.message);
         }
+    }
+
+    // ===== TABS =====
+    function switchTab(tab) {
+        document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+        document.getElementById("tabTrainings").style.display = tab === "trainings" ? "block" : "none";
+        document.getElementById("tabQrcode").style.display = tab === "qrcode" ? "block" : "none";
+        event.target.classList.add("active");
+    }
+
+    // ===== QR CODE =====
+    function generateQR() {
+        var link = document.getElementById("qrLink").value.trim();
+        var name = document.getElementById("qrName").value.trim();
+        var alert = document.getElementById("qrAlert");
+        var result = document.getElementById("qrResult");
+
+        alert.innerHTML = "";
+        result.style.display = "none";
+
+        if (!link) {
+            alert.innerHTML = '<div class="alert alert-error">Cole o link do Google Drive.</div>';
+            return;
+        }
+
+        if (!link.startsWith("http")) {
+            alert.innerHTML = '<div class="alert alert-error">O link precisa comecar com http:// ou https://</div>';
+            return;
+        }
+
+        var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
+        var img = document.getElementById("qrImage");
+        img.src = qrUrl;
+        img.onload = function() {
+            result.style.display = "block";
+            document.getElementById("qrLabel").textContent = name || "QR Code gerado";
+        };
+        img.onerror = function() {
+            alert.innerHTML = '<div class="alert alert-error">Erro ao gerar QR Code. Verifique sua conexao.</div>';
+        };
+    }
+
+    function downloadQR() {
+        var img = document.getElementById("qrImage");
+        var name = document.getElementById("qrName").value.trim();
+        var fileName = name
+            ? "qrcode-" + name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
+            : "qrcode-treinamento.png";
+
+        var canvas = document.createElement("canvas");
+        canvas.width = 600;
+        canvas.height = 600;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, 600, 600);
+
+        var a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = fileName;
+        a.click();
     }
 
     // ===== HELPERS =====
