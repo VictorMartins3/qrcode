@@ -566,7 +566,7 @@
     // ===== AUTH =====
     auth.onAuthStateChanged(function(user) {
         if (user) {
-            if (user.email === ADMIN_EMAIL) {
+            if (ADMIN_EMAILS.includes(user.email)) {
                 document.getElementById("loginSection").style.display = "none";
                 document.getElementById("deniedSection").style.display = "none";
                 document.getElementById("navBar").style.display = "flex";

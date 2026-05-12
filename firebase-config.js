@@ -19,10 +19,14 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// Email do administrador (quem pode criar treinamentos e certificados)
+// Emails dos administradores (quem pode criar treinamentos e certificados)
 // Use o mesmo email da conta Google que vai fazer login no admin
+// Adicione novos emails à lista abaixo
 // ============================================================
-const ADMIN_EMAIL = "martins.victor212004@gmail.com";
+const ADMIN_EMAILS = [
+    "martins.victor212004@gmail.com",
+    "segurecaretreinamentos@gmail.com",
+];
 
 // ============================================================
 // URL base do site (GitHub Pages)
