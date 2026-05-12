@@ -106,7 +106,7 @@
         /* ===== STATS ===== */
         .stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -145,7 +145,8 @@
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 12px 14px;
             border: 2px solid #e0e0e0;
@@ -157,7 +158,8 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus { border-color: #0f4c81; }
+        .form-group textarea:focus,
+        .form-group select:focus { border-color: #0f4c81; }
 
         .form-group textarea { resize: vertical; min-height: 100px; }
 
@@ -207,6 +209,17 @@
             padding: 4px 10px;
             border-radius: 6px;
             white-space: nowrap;
+        }
+
+        .company-code {
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            font-family: monospace;
         }
 
         .student-row {
@@ -280,6 +293,7 @@
 
         .alert-success { background: #d1fae5; color: #065f46; }
         .alert-error { background: #fee2e2; color: #991b1b; }
+        .alert-info { background: #eff6ff; color: #1e40af; }
 
         .spinner {
             display: inline-block;
@@ -317,6 +331,7 @@
             display: flex;
             gap: 8px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -354,6 +369,29 @@
             margin-top: 12px;
         }
 
+        .code-display {
+            background: #f0f2f5;
+            border: 2px dashed #d0d0d0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .code-display .code {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: #0f4c81;
+            font-family: monospace;
+        }
+
+        .code-display .code-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
+
         @media (max-width: 600px) {
             .form-row { grid-template-columns: 1fr; }
             .stats { grid-template-columns: 1fr; }
@@ -378,7 +416,7 @@
     <div class="login-container">
         <div class="login-card">
             <h1>Painel Administrativo</h1>
-            <p>Faça login para gerenciar treinamentos e certificados</p>
+            <p>Faca login para gerenciar empresas e treinamentos</p>
             <button class="btn btn-google" onclick="loginWithGoogle()">
                 Entrar com Google
             </button>
@@ -390,7 +428,7 @@
 <div id="deniedSection" style="display:none">
     <div class="denied-container">
         <h2>Acesso Negado</h2>
-        <p>Sua conta não tem permissão para acessar o painel administrativo.</p>
+        <p>Sua conta nao tem permissao para acessar o painel administrativo.</p>
         <button class="btn btn-secondary" onclick="logout()">Sair</button>
     </div>
 </div>
@@ -399,13 +437,18 @@
 <div id="dashboardSection" class="section">
     <div class="container">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('trainings')">Treinamentos</button>
+            <button class="tab active" onclick="switchTab('companies')">Empresas</button>
+            <button class="tab" onclick="switchTab('trainings')">Treinamentos</button>
             <button class="tab" onclick="switchTab('qrcode')">Gerar QR Code</button>
         </div>
 
-        <!-- TAB: Treinamentos -->
-        <div id="tabTrainings">
+        <!-- TAB: Empresas -->
+        <div id="tabCompanies">
             <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="statCompanies">0</div>
+                    <div class="stat-label">Empresas</div>
+                </div>
                 <div class="stat-card">
                     <div class="stat-number" id="statTrainings">0</div>
                     <div class="stat-label">Treinamentos</div>
@@ -416,6 +459,21 @@
                 </div>
             </div>
 
+            <div class="card">
+                <div class="top-bar">
+                    <h2>Empresas</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showSection('companyFormSection'); clearCompanyForm();">+ Nova Empresa</button>
+                </div>
+                <div id="companyList">
+                    <div class="empty-state">
+                        <p>Nenhuma empresa cadastrada ainda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Treinamentos -->
+        <div id="tabTrainings" style="display:none">
             <div class="card">
                 <div class="top-bar">
                     <h2>Treinamentos</h2>
@@ -432,32 +490,78 @@
         <!-- TAB: QR Code -->
         <div id="tabQrcode" style="display:none">
             <div class="card">
-                <h2>Gerar QR Code</h2>
-                <p style="color:#888;font-size:14px;margin-bottom:20px">Cole o link do Google Drive com as fotos do treinamento e gere o QR Code para o certificado.</p>
+                <h2>Gerar QR Code da Empresa</h2>
+                <p style="color:#888;font-size:14px;margin-bottom:20px">Selecione uma empresa para gerar o QR Code. Quando escaneado, o QR Code mostra todos os treinamentos daquela empresa.</p>
 
                 <div class="form-group">
-                    <label>Nome do treinamento</label>
-                    <input type="text" id="qrName" placeholder="Ex: NR-35 Turma A - 06/05/2026">
-                </div>
-
-                <div class="form-group">
-                    <label>Link do Google Drive</label>
-                    <input type="text" id="qrLink" placeholder="https://drive.google.com/drive/folders/...">
-                    <p class="form-hint">Compartilhe a pasta como "Qualquer pessoa com o link" antes de colar aqui</p>
+                    <label>Empresa</label>
+                    <select id="qrCompany">
+                        <option value="">Selecione uma empresa...</option>
+                    </select>
                 </div>
 
                 <div id="qrAlert"></div>
 
-                <button class="btn btn-primary btn-block" onclick="generateQR()">
+                <button class="btn btn-primary btn-block" onclick="generateCompanyQR()">
                     Gerar QR Code
                 </button>
 
                 <div class="qr-result" id="qrResult" style="display:none">
                     <img id="qrImage" src="" alt="QR Code" width="300" height="300">
                     <p id="qrLabel"></p>
+                    <div class="code-display" id="qrCodeDisplay" style="display:none">
+                        <div class="code" id="qrCodeText"></div>
+                        <div class="code-label">Codigo da empresa</div>
+                    </div>
                     <button class="btn btn-success btn-block" onclick="downloadQR()" style="margin-top:12px">
                         Baixar QR Code (PNG)
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== COMPANY FORM ===== -->
+<div id="companyFormSection" class="section">
+    <div class="container">
+        <a class="back-link" onclick="showSection('dashboardSection'); loadDashboard();">&#8592; Voltar</a>
+        <div class="card">
+            <h2 id="companyFormTitle">Nova Empresa</h2>
+            <input type="hidden" id="editingCompanyId">
+
+            <div class="form-group">
+                <label>Nome da Empresa *</label>
+                <input type="text" id="fcName" placeholder="Ex: Amazon">
+            </div>
+
+            <div class="form-group">
+                <label>Codigo da Empresa</label>
+                <input type="text" id="fcCode" placeholder="Gerado automaticamente" style="text-transform:uppercase;letter-spacing:2px;font-weight:700">
+                <p class="form-hint">Deixe em branco para gerar automaticamente, ou digite um codigo personalizado</p>
+            </div>
+
+            <div id="companyFormAlert"></div>
+
+            <button class="btn btn-primary btn-block" id="btnSaveCompany" onclick="saveCompany()">
+                Salvar Empresa
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== COMPANY DETAIL ===== -->
+<div id="companyDetailSection" class="section">
+    <div class="container">
+        <a class="back-link" onclick="showSection('dashboardSection'); loadDashboard();">&#8592; Voltar</a>
+        <div class="card" id="companyDetail"></div>
+        <div class="card">
+            <div class="top-bar">
+                <h3>Treinamentos desta Empresa</h3>
+            </div>
+            <div id="companyTrainingList">
+                <div class="empty-state">
+                    <p>Nenhum treinamento associado.</p>
                 </div>
             </div>
         </div>
@@ -471,6 +575,13 @@
         <div class="card">
             <h2 id="formTitle">Novo Treinamento</h2>
             <input type="hidden" id="editingId">
+
+            <div class="form-group">
+                <label>Empresa *</label>
+                <select id="fCompany">
+                    <option value="">Selecione uma empresa...</option>
+                </select>
+            </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -486,7 +597,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Local</label>
-                    <input type="text" id="fLocation" placeholder="Ex: São Paulo, SP">
+                    <input type="text" id="fLocation" placeholder="Ex: Sao Paulo, SP">
                 </div>
                 <div class="form-group">
                     <label>Instrutor</label>
@@ -507,7 +618,7 @@
 
             <div class="form-group">
                 <label>Descricao</label>
-                <textarea id="fDescription" placeholder="Descrição do treinamento (opcional)"></textarea>
+                <textarea id="fDescription" placeholder="Descricao do treinamento (opcional)"></textarea>
             </div>
 
             <div id="formAlert"></div>
@@ -529,7 +640,7 @@
         <div class="card">
             <h3>Adicionar Alunos em Lote</h3>
             <div class="form-group">
-                <textarea id="studentsBatch" rows="6" placeholder="Cole a lista de alunos (um por linha):&#10;&#10;Nome Completo, email@exemplo.com&#10;Maria Silva, maria@email.com&#10;João Santos, joao@email.com"></textarea>
+                <textarea id="studentsBatch" rows="6" placeholder="Cole a lista de alunos (um por linha):&#10;&#10;Nome Completo, email@exemplo.com&#10;Maria Silva, maria@email.com&#10;Joao Santos, joao@email.com"></textarea>
                 <p class="form-hint">Formato: Nome, Email (um aluno por linha)</p>
             </div>
             <div id="batchAlert"></div>
@@ -562,6 +673,8 @@
     var db = firebase.firestore();
 
     var currentTrainingId = null;
+    var currentCompanyId = null;
+    var companiesCache = [];
 
     // ===== AUTH =====
     auth.onAuthStateChanged(function(user) {
@@ -609,42 +722,247 @@
     // ===== DASHBOARD =====
     async function loadDashboard() {
         try {
+            var cmpSnap = await db.collection("companies").orderBy("createdAt", "desc").get();
             var tSnap = await db.collection("trainings").orderBy("createdAt", "desc").get();
-            var cSnap = await db.collection("certificates").get();
+            var certSnap = await db.collection("certificates").get();
 
+            document.getElementById("statCompanies").textContent = cmpSnap.size;
             document.getElementById("statTrainings").textContent = tSnap.size;
-            document.getElementById("statCertificates").textContent = cSnap.size;
+            document.getElementById("statCertificates").textContent = certSnap.size;
 
-            // Contar certificados por treinamento
+            // Cache companies
+            companiesCache = cmpSnap.docs.map(function(d) { return { id: d.id, data: d.data() }; });
+
+            // Populate company selects
+            populateCompanySelects();
+
+            // Count trainings per company
+            var trainingsByCompany = {};
+            tSnap.docs.forEach(function(d) {
+                var cid = d.data().companyId;
+                if (cid) trainingsByCompany[cid] = (trainingsByCompany[cid] || 0) + 1;
+            });
+
+            // Render companies
+            if (cmpSnap.empty) {
+                document.getElementById("companyList").innerHTML =
+                    '<div class="empty-state"><p>Nenhuma empresa cadastrada.</p>' +
+                    '<button class="btn btn-primary btn-sm" onclick="showSection(\'companyFormSection\'); clearCompanyForm();">Cadastrar Primeira Empresa</button></div>';
+            } else {
+                var html = "";
+                cmpSnap.docs.forEach(function(doc) {
+                    var c = doc.data();
+                    var count = trainingsByCompany[doc.id] || 0;
+                    html += '<div class="training-item" onclick="openCompanyDetail(\'' + doc.id + '\')">' +
+                        '<div class="training-info">' +
+                            '<h4>' + escHtml(c.name) + '</h4>' +
+                            '<p><span class="company-code">' + escHtml(c.code) + '</span></p>' +
+                        '</div>' +
+                        '<span class="training-count">' + count + ' treinamento' + (count !== 1 ? 's' : '') + '</span>' +
+                    '</div>';
+                });
+                document.getElementById("companyList").innerHTML = html;
+            }
+
+            // Count certs per training
             var certCounts = {};
-            cSnap.docs.forEach(function(d) {
+            certSnap.docs.forEach(function(d) {
                 var tid = d.data().trainingId;
                 certCounts[tid] = (certCounts[tid] || 0) + 1;
             });
 
+            // Build company name map
+            var companyNames = {};
+            cmpSnap.docs.forEach(function(d) { companyNames[d.id] = d.data().name; });
+
+            // Render trainings
             if (tSnap.empty) {
                 document.getElementById("trainingList").innerHTML =
                     '<div class="empty-state"><p>Nenhum treinamento cadastrado.</p>' +
                     '<button class="btn btn-primary btn-sm" onclick="showSection(\'formSection\'); clearForm();">Criar Primeiro Treinamento</button></div>';
-                return;
+            } else {
+                var html2 = "";
+                tSnap.docs.forEach(function(doc) {
+                    var t = doc.data();
+                    var count = certCounts[doc.id] || 0;
+                    var companyName = companyNames[t.companyId] || "Sem empresa";
+                    html2 += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
+                        '<div class="training-info">' +
+                            '<h4>' + escHtml(t.title) + '</h4>' +
+                            '<p>' + escHtml(formatDate(t.date)) + ' &mdash; ' + escHtml(companyName) + '</p>' +
+                        '</div>' +
+                        '<span class="training-count">' + count + ' certificado' + (count !== 1 ? 's' : '') + '</span>' +
+                    '</div>';
+                });
+                document.getElementById("trainingList").innerHTML = html2;
             }
-
-            var html = "";
-            tSnap.docs.forEach(function(doc) {
-                var t = doc.data();
-                var count = certCounts[doc.id] || 0;
-                html += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
-                    '<div class="training-info">' +
-                        '<h4>' + escHtml(t.title) + '</h4>' +
-                        '<p>' + escHtml(formatDate(t.date)) + (t.location ? ' &mdash; ' + escHtml(t.location) : '') + '</p>' +
-                    '</div>' +
-                    '<span class="training-count">' + count + ' certificado' + (count !== 1 ? 's' : '') + '</span>' +
-                '</div>';
-            });
-            document.getElementById("trainingList").innerHTML = html;
 
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    function populateCompanySelects() {
+        var selects = [document.getElementById("fCompany"), document.getElementById("qrCompany")];
+        selects.forEach(function(sel) {
+            if (!sel) return;
+            var val = sel.value;
+            sel.innerHTML = '<option value="">Selecione uma empresa...</option>';
+            companiesCache.forEach(function(c) {
+                sel.innerHTML += '<option value="' + c.id + '">' + escHtml(c.data.name) + ' (' + escHtml(c.data.code) + ')</option>';
+            });
+            if (val) sel.value = val;
+        });
+    }
+
+    // ===== COMPANY FORM =====
+    function clearCompanyForm() {
+        document.getElementById("companyFormTitle").textContent = "Nova Empresa";
+        document.getElementById("editingCompanyId").value = "";
+        document.getElementById("fcName").value = "";
+        document.getElementById("fcCode").value = "";
+        document.getElementById("companyFormAlert").innerHTML = "";
+    }
+
+    function generateCode(name) {
+        var prefix = name.replace(/[^A-Za-z]/g, "").substring(0, 3).toUpperCase();
+        if (prefix.length < 3) prefix = (prefix + "XXX").substring(0, 3);
+        var num = Math.floor(1000 + Math.random() * 9000);
+        return prefix + num;
+    }
+
+    async function saveCompany() {
+        var name = document.getElementById("fcName").value.trim();
+        var code = document.getElementById("fcCode").value.trim().toUpperCase();
+        var alertEl = document.getElementById("companyFormAlert");
+        var btn = document.getElementById("btnSaveCompany");
+
+        if (!name) {
+            alertEl.innerHTML = '<div class="alert alert-error">Preencha o nome da empresa.</div>';
+            return;
+        }
+
+        if (!code) {
+            code = generateCode(name);
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        try {
+            // Check if code already exists
+            var editId = document.getElementById("editingCompanyId").value;
+            var existing = await db.collection("companies").where("code", "==", code).get();
+            if (!existing.empty) {
+                var existingId = existing.docs[0].id;
+                if (!editId || existingId !== editId) {
+                    alertEl.innerHTML = '<div class="alert alert-error">Ja existe uma empresa com o codigo ' + escHtml(code) + '.</div>';
+                    return;
+                }
+            }
+
+            var data = {
+                name: name,
+                code: code,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (editId) {
+                await db.collection("companies").doc(editId).update(data);
+            } else {
+                await db.collection("companies").add(data);
+            }
+
+            showSection("dashboardSection");
+            loadDashboard();
+        } catch (e) {
+            console.error(e);
+            alertEl.innerHTML = '<div class="alert alert-error">Erro ao salvar: ' + escHtml(e.message) + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Salvar Empresa";
+        }
+    }
+
+    // ===== COMPANY DETAIL =====
+    async function openCompanyDetail(companyId) {
+        currentCompanyId = companyId;
+        showSection("companyDetailSection");
+
+        document.getElementById("companyDetail").innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span></div>';
+        document.getElementById("companyTrainingList").innerHTML = "";
+
+        try {
+            var doc = await db.collection("companies").doc(companyId).get();
+            if (!doc.exists) return;
+            var c = doc.data();
+
+            var qrUrl = SITE_URL + "?code=" + encodeURIComponent(c.code);
+
+            document.getElementById("companyDetail").innerHTML =
+                '<div class="top-bar">' +
+                    '<h2>' + escHtml(c.name) + '</h2>' +
+                    '<div style="display:flex;gap:8px">' +
+                        '<button class="btn btn-sm btn-secondary" onclick="editCompany(\'' + companyId + '\')">Editar</button>' +
+                        '<button class="btn btn-sm btn-danger" onclick="deleteCompany(\'' + companyId + '\')">Excluir</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="code-display">' +
+                    '<div class="code">' + escHtml(c.code) + '</div>' +
+                    '<div class="code-label">Codigo da empresa</div>' +
+                '</div>' +
+                '<div style="text-align:center;margin-top:12px">' +
+                    '<p style="font-size:13px;color:#888;margin-bottom:8px">Link: <a href="' + escAttr(qrUrl) + '" target="_blank" style="color:#0f4c81">' + escHtml(qrUrl) + '</a></p>' +
+                '</div>';
+
+            // Load trainings for this company
+            var tSnap = await db.collection("trainings")
+                .where("companyId", "==", companyId)
+                .orderBy("createdAt", "desc")
+                .get();
+
+            if (tSnap.empty) {
+                document.getElementById("companyTrainingList").innerHTML =
+                    '<div class="empty-state"><p>Nenhum treinamento associado a esta empresa.</p></div>';
+            } else {
+                var html = "";
+                tSnap.docs.forEach(function(doc) {
+                    var t = doc.data();
+                    html += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
+                        '<div class="training-info">' +
+                            '<h4>' + escHtml(t.title) + '</h4>' +
+                            '<p>' + escHtml(formatDate(t.date)) + (t.instructor ? ' &mdash; ' + escHtml(t.instructor) : '') + '</p>' +
+                        '</div>' +
+                    '</div>';
+                });
+                document.getElementById("companyTrainingList").innerHTML = html;
+            }
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function editCompany(id) {
+        var doc = await db.collection("companies").doc(id).get();
+        var c = doc.data();
+        document.getElementById("companyFormTitle").textContent = "Editar Empresa";
+        document.getElementById("editingCompanyId").value = id;
+        document.getElementById("fcName").value = c.name || "";
+        document.getElementById("fcCode").value = c.code || "";
+        document.getElementById("companyFormAlert").innerHTML = "";
+        showSection("companyFormSection");
+    }
+
+    async function deleteCompany(id) {
+        if (!confirm("Excluir esta empresa? Os treinamentos associados perderao a associacao.")) return;
+
+        try {
+            await db.collection("companies").doc(id).delete();
+            showSection("dashboardSection");
+            loadDashboard();
+        } catch (e) {
+            alert("Erro ao excluir: " + e.message);
         }
     }
 
@@ -652,6 +970,7 @@
     function clearForm() {
         document.getElementById("formTitle").textContent = "Novo Treinamento";
         document.getElementById("editingId").value = "";
+        document.getElementById("fCompany").value = "";
         document.getElementById("fTitle").value = "";
         document.getElementById("fDate").value = "";
         document.getElementById("fLocation").value = "";
@@ -663,13 +982,14 @@
     }
 
     async function saveTraining() {
+        var companyId = document.getElementById("fCompany").value;
         var title = document.getElementById("fTitle").value.trim();
         var date = document.getElementById("fDate").value;
-        var alert = document.getElementById("formAlert");
+        var alertEl = document.getElementById("formAlert");
         var btn = document.getElementById("btnSaveTraining");
 
-        if (!title || !date) {
-            alert.innerHTML = '<div class="alert alert-error">Preencha pelo menos o titulo e a data.</div>';
+        if (!companyId || !title || !date) {
+            alertEl.innerHTML = '<div class="alert alert-error">Preencha empresa, titulo e data.</div>';
             return;
         }
 
@@ -677,6 +997,7 @@
         btn.innerHTML = '<span class="spinner"></span>';
 
         var data = {
+            companyId: companyId,
             title: title,
             date: date,
             location: document.getElementById("fLocation").value.trim(),
@@ -698,7 +1019,7 @@
             loadDashboard();
         } catch (e) {
             console.error(e);
-            alert.innerHTML = '<div class="alert alert-error">Erro ao salvar: ' + escHtml(e.message) + '</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">Erro ao salvar: ' + escHtml(e.message) + '</div>';
         } finally {
             btn.disabled = false;
             btn.textContent = "Salvar Treinamento";
@@ -720,6 +1041,13 @@
             if (!tDoc.exists) return;
             var t = tDoc.data();
 
+            // Get company name
+            var companyName = "";
+            if (t.companyId) {
+                var cDoc = await db.collection("companies").doc(t.companyId).get();
+                if (cDoc.exists) companyName = cDoc.data().name;
+            }
+
             var photosLink = t.photosUrl
                 ? '<a href="' + escAttr(t.photosUrl) + '" target="_blank" style="color:#16a085;text-decoration:none;font-size:13px">Ver fotos</a>'
                 : '';
@@ -733,6 +1061,7 @@
                     '</div>' +
                 '</div>' +
                 '<div style="font-size:14px;color:#666;line-height:1.8">' +
+                    (companyName ? '<strong>Empresa:</strong> ' + escHtml(companyName) + '<br>' : '') +
                     (t.date ? '<strong>Data:</strong> ' + escHtml(formatDate(t.date)) + '<br>' : '') +
                     (t.location ? '<strong>Local:</strong> ' + escHtml(t.location) + '<br>' : '') +
                     (t.instructor ? '<strong>Instrutor:</strong> ' + escHtml(t.instructor) + '<br>' : '') +
@@ -785,15 +1114,14 @@
     // ===== BATCH GENERATE =====
     async function generateCertificates() {
         var raw = document.getElementById("studentsBatch").value.trim();
-        var alert = document.getElementById("batchAlert");
+        var alertEl = document.getElementById("batchAlert");
         var btn = document.getElementById("btnGenerateCerts");
 
         if (!raw) {
-            alert.innerHTML = '<div class="alert alert-error">Cole a lista de alunos.</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">Cole a lista de alunos.</div>';
             return;
         }
 
-        // Parse: aceita "Nome, Email" ou "Nome; Email" ou "Nome - Email"
         var lines = raw.split("\n").map(function(l) { return l.trim(); }).filter(Boolean);
         var students = [];
         var errors = [];
@@ -814,18 +1142,18 @@
         });
 
         if (errors.length > 0) {
-            alert.innerHTML = '<div class="alert alert-error">' + errors.join("<br>") + '</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">' + errors.join("<br>") + '</div>';
             return;
         }
 
         if (students.length === 0) {
-            alert.innerHTML = '<div class="alert alert-error">Nenhum aluno encontrado na lista.</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">Nenhum aluno encontrado na lista.</div>';
             return;
         }
 
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Gerando ' + students.length + ' certificado(s)...';
-        alert.innerHTML = "";
+        alertEl.innerHTML = "";
 
         try {
             var batch = db.batch();
@@ -841,14 +1169,13 @@
             await batch.commit();
 
             document.getElementById("studentsBatch").value = "";
-            alert.innerHTML = '<div class="alert alert-success">' + students.length + ' certificado(s) gerado(s) com sucesso!</div>';
+            alertEl.innerHTML = '<div class="alert alert-success">' + students.length + ' certificado(s) gerado(s) com sucesso!</div>';
             loadCertificates(currentTrainingId);
-            // Atualiza stats
             loadDashboard();
 
         } catch (e) {
             console.error(e);
-            alert.innerHTML = '<div class="alert alert-error">Erro ao gerar certificados: ' + escHtml(e.message) + '</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">Erro ao gerar certificados: ' + escHtml(e.message) + '</div>';
         } finally {
             btn.disabled = false;
             btn.textContent = "Gerar Certificados";
@@ -861,6 +1188,7 @@
         var t = doc.data();
         document.getElementById("formTitle").textContent = "Editar Treinamento";
         document.getElementById("editingId").value = id;
+        document.getElementById("fCompany").value = t.companyId || "";
         document.getElementById("fTitle").value = t.title || "";
         document.getElementById("fDate").value = t.date || "";
         document.getElementById("fLocation").value = t.location || "";
@@ -876,7 +1204,6 @@
         if (!confirm("Excluir este treinamento e TODOS os certificados associados?")) return;
 
         try {
-            // Deletar certificados associados
             var snap = await db.collection("certificates").where("trainingId", "==", id).get();
             var batch = db.batch();
             snap.docs.forEach(function(doc) { batch.delete(doc.ref); });
@@ -903,59 +1230,57 @@
     // ===== TABS =====
     function switchTab(tab) {
         document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+        document.getElementById("tabCompanies").style.display = tab === "companies" ? "block" : "none";
         document.getElementById("tabTrainings").style.display = tab === "trainings" ? "block" : "none";
         document.getElementById("tabQrcode").style.display = tab === "qrcode" ? "block" : "none";
         event.target.classList.add("active");
     }
 
     // ===== QR CODE =====
-    function generateQR() {
-        var link = document.getElementById("qrLink").value.trim();
-        var name = document.getElementById("qrName").value.trim();
-        var alert = document.getElementById("qrAlert");
+    function generateCompanyQR() {
+        var companyId = document.getElementById("qrCompany").value;
+        var alertEl = document.getElementById("qrAlert");
         var result = document.getElementById("qrResult");
 
-        alert.innerHTML = "";
+        alertEl.innerHTML = "";
         result.style.display = "none";
 
-        if (!link) {
-            alert.innerHTML = '<div class="alert alert-error">Cole o link do Google Drive.</div>';
+        if (!companyId) {
+            alertEl.innerHTML = '<div class="alert alert-error">Selecione uma empresa.</div>';
             return;
         }
 
-        if (!link.startsWith("http")) {
-            alert.innerHTML = '<div class="alert alert-error">O link precisa comecar com http:// ou https://</div>';
-            return;
-        }
+        var company = companiesCache.find(function(c) { return c.id === companyId; });
+        if (!company) return;
 
+        var link = SITE_URL + "?code=" + encodeURIComponent(company.data.code);
         var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
+
         var img = document.getElementById("qrImage");
         img.src = qrUrl;
         img.onload = function() {
             result.style.display = "block";
-            document.getElementById("qrLabel").textContent = name || "QR Code gerado";
+            document.getElementById("qrLabel").textContent = company.data.name;
+            document.getElementById("qrCodeDisplay").style.display = "block";
+            document.getElementById("qrCodeText").textContent = company.data.code;
         };
         img.onerror = function() {
-            alert.innerHTML = '<div class="alert alert-error">Erro ao gerar QR Code. Verifique sua conexao.</div>';
+            alertEl.innerHTML = '<div class="alert alert-error">Erro ao gerar QR Code. Verifique sua conexao.</div>';
         };
     }
 
     function downloadQR() {
         var img = document.getElementById("qrImage");
-        var name = document.getElementById("qrName").value.trim();
-        var fileName = name
-            ? "qrcode-" + name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
-            : "qrcode-treinamento.png";
+        var company = companiesCache.find(function(c) { return c.id === document.getElementById("qrCompany").value; });
+        var fileName = company
+            ? "qrcode-" + company.data.name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
+            : "qrcode-empresa.png";
 
-        var canvas = document.createElement("canvas");
-        canvas.width = 600;
-        canvas.height = 600;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, 600, 600);
-
+        // Baixar direto da API para evitar erro de CORS com canvas
         var a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png");
+        a.href = img.src;
         a.download = fileName;
+        a.target = "_blank";
         a.click();
     }
 

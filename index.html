@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meus Certificados</title>
+    <title>Treinamentos - SegureCare</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -52,11 +52,13 @@
             font-size: 15px;
             outline: none;
             transition: border-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .input-group input:focus { border-color: #0f4c81; }
 
-        .input-group input::placeholder { color: #aaa; }
+        .input-group input::placeholder { color: #aaa; text-transform: none; letter-spacing: normal; }
 
         .btn {
             padding: 14px 24px;
@@ -92,7 +94,27 @@
 
         .message.error { color: #e74c3c; }
 
-        .cert-card {
+        .company-header {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .company-header h2 {
+            font-size: 20px;
+            color: #0f4c81;
+            margin-bottom: 4px;
+        }
+
+        .company-header p {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .training-card {
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -101,22 +123,22 @@
             transition: box-shadow 0.2s;
         }
 
-        .cert-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .training-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
 
-        .cert-card h3 {
+        .training-card h3 {
             font-size: 16px;
             color: #1a1a2e;
             margin-bottom: 8px;
         }
 
-        .cert-meta {
+        .training-meta {
             font-size: 13px;
             color: #888;
             margin-bottom: 12px;
             line-height: 1.6;
         }
 
-        .cert-actions {
+        .training-actions {
             display: flex;
             gap: 8px;
         }
@@ -185,15 +207,15 @@
 </head>
 <body>
     <div class="header">
-        <h1>Meus Certificados</h1>
-        <p>Digite seu email para encontrar seus certificados de treinamento</p>
+        <h1>Treinamentos</h1>
+        <p>Digite o codigo da empresa para ver os treinamentos</p>
     </div>
 
     <div class="search-box">
         <div class="search-card">
             <div class="input-group">
-                <input type="email" id="emailInput" placeholder="seu@email.com" autocomplete="email">
-                <button class="btn btn-primary" id="btnSearch" onclick="searchCertificates()">Buscar</button>
+                <input type="text" id="codeInput" placeholder="Codigo da empresa" autocomplete="off">
+                <button class="btn btn-primary" id="btnSearch" onclick="searchByCode()">Buscar</button>
             </div>
         </div>
     </div>
@@ -201,7 +223,7 @@
     <div class="content" id="results"></div>
 
     <div class="footer">
-        <a href="admin.html">Área Administrativa</a>
+        <a href="admin.html">Area Administrativa</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
@@ -211,17 +233,25 @@
         firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
 
-        document.getElementById("emailInput").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") searchCertificates();
+        // Checar se veio com codigo na URL (via QR code)
+        var params = new URLSearchParams(window.location.search);
+        var urlCode = params.get("code");
+        if (urlCode) {
+            document.getElementById("codeInput").value = urlCode.toUpperCase();
+            searchByCode();
+        }
+
+        document.getElementById("codeInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") searchByCode();
         });
 
-        async function searchCertificates() {
-            var email = document.getElementById("emailInput").value.trim().toLowerCase();
+        async function searchByCode() {
+            var code = document.getElementById("codeInput").value.trim().toUpperCase();
             var results = document.getElementById("results");
             var btn = document.getElementById("btnSearch");
 
-            if (!email) {
-                results.innerHTML = '<div class="message error">Digite seu email</div>';
+            if (!code) {
+                results.innerHTML = '<div class="message error">Digite o codigo da empresa</div>';
                 return;
             }
 
@@ -231,59 +261,68 @@
             results.innerHTML = "";
 
             try {
-                var snap = await db.collection("certificates")
-                    .where("studentEmail", "==", email)
-                    .orderBy("createdAt", "desc")
+                // Buscar empresa pelo codigo
+                var companySnap = await db.collection("companies")
+                    .where("code", "==", code)
+                    .limit(1)
                     .get();
 
-                if (snap.empty) {
-                    results.innerHTML = '<div class="message">Nenhum certificado encontrado para este email.</div>';
+                if (companySnap.empty) {
+                    results.innerHTML = '<div class="message error">Codigo nao encontrado. Verifique o codigo e tente novamente.</div>';
                     return;
                 }
 
-                // Buscar dados dos treinamentos
-                var trainingIds = [...new Set(snap.docs.map(function(d) { return d.data().trainingId; }))];
-                var trainings = {};
-                for (var i = 0; i < trainingIds.length; i++) {
-                    var tDoc = await db.collection("trainings").doc(trainingIds[i]).get();
-                    if (tDoc.exists) trainings[trainingIds[i]] = tDoc.data();
+                var company = companySnap.docs[0].data();
+                var companyId = companySnap.docs[0].id;
+
+                // Buscar treinamentos da empresa
+                var trainingsSnap = await db.collection("trainings")
+                    .where("companyId", "==", companyId)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                var html = '<div class="company-header">' +
+                    '<h2>' + escHtml(company.name) + '</h2>' +
+                    '<p>' + trainingsSnap.size + ' treinamento' + (trainingsSnap.size !== 1 ? 's' : '') + ' registrado' + (trainingsSnap.size !== 1 ? 's' : '') + '</p>' +
+                '</div>';
+
+                if (trainingsSnap.empty) {
+                    html += '<div class="message">Nenhum treinamento registrado para esta empresa ainda.</div>';
+                    results.innerHTML = html;
+                    return;
                 }
 
-                var html = "";
-                snap.docs.forEach(function(doc) {
-                    var cert = doc.data();
-                    var t = trainings[cert.trainingId] || {};
-                    html += renderCertCard(doc.id, cert, t);
+                trainingsSnap.docs.forEach(function(doc) {
+                    var t = doc.data();
+                    html += renderTrainingCard(doc.id, t);
                 });
+
                 results.innerHTML = html;
 
             } catch (e) {
                 console.error(e);
-                results.innerHTML = '<div class="message error">Erro ao buscar certificados. Tente novamente.</div>';
+                results.innerHTML = '<div class="message error">Erro ao buscar treinamentos. Tente novamente.</div>';
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Buscar";
             }
         }
 
-        function renderCertCard(id, cert, training) {
+        function renderTrainingCard(id, training) {
             var date = training.date ? formatDate(training.date) : "";
             var photosBtn = training.photosUrl
                 ? '<a href="' + escAttr(training.photosUrl) + '" target="_blank" class="btn-sm btn-photos">Ver Fotos</a>'
                 : "";
 
-            return '<div class="cert-card">' +
-                '<span class="badge">Certificado Verificado</span>' +
+            return '<div class="training-card">' +
+                '<span class="badge">Treinamento Registrado</span>' +
                 '<h3>' + escHtml(training.title || "Treinamento") + '</h3>' +
-                '<div class="cert-meta">' +
+                '<div class="training-meta">' +
                     (date ? 'Data: ' + escHtml(date) + '<br>' : '') +
                     (training.duration ? 'Carga Horaria: ' + escHtml(training.duration) + '<br>' : '') +
                     (training.instructor ? 'Instrutor: ' + escHtml(training.instructor) : '') +
                 '</div>' +
-                '<div class="cert-actions">' +
-                    '<a href="certificado.html?id=' + encodeURIComponent(id) + '" class="btn-sm btn-view">Ver Certificado</a>' +
-                    photosBtn +
-                '</div>' +
+                (photosBtn ? '<div class="training-actions">' + photosBtn + '</div>' : '') +
             '</div>';
         }
 
