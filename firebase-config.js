@@ -32,4 +32,4 @@ const ADMIN_EMAILS = [
 // URL base do site (GitHub Pages)
 // Formato: https://SEU-USUARIO.github.io/NOME-DO-REPO
 // ============================================================
-const SITE_URL = "https://victormartins3.github.io/qrcode";
+const SITE_URL = "https://segurecare.com.br";
