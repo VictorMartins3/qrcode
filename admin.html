@@ -489,9 +489,16 @@
 
         <!-- TAB: QR Code -->
         <div id="tabQrcode" style="display:none">
-            <div class="card">
-                <h2>Gerar QR Code da Empresa</h2>
-                <p style="color:#888;font-size:14px;margin-bottom:20px">Selecione uma empresa para gerar o QR Code. Quando escaneado, o QR Code mostra todos os treinamentos daquela empresa.</p>
+            <!-- Sub-tabs QR -->
+            <div class="tabs" style="margin-bottom:16px">
+                <button class="tab active" onclick="switchQrMode('company')">QR da Empresa</button>
+                <button class="tab" onclick="switchQrMode('training')">QR do Treinamento</button>
+            </div>
+
+            <!-- QR Empresa -->
+            <div class="card" id="qrCompanyCard">
+                <h2>QR Code da Empresa</h2>
+                <p style="color:#888;font-size:14px;margin-bottom:20px">Selecione uma empresa para gerar o QR Code. Quando escaneado, mostra todos os treinamentos dela.</p>
 
                 <div class="form-group">
                     <label>Empresa</label>
@@ -500,20 +507,51 @@
                     </select>
                 </div>
 
-                <div id="qrAlert"></div>
+                <div id="qrCompanyAlert"></div>
 
                 <button class="btn btn-primary btn-block" onclick="generateCompanyQR()">
                     Gerar QR Code
                 </button>
 
-                <div class="qr-result" id="qrResult" style="display:none">
-                    <img id="qrImage" src="" alt="QR Code" width="300" height="300">
-                    <p id="qrLabel"></p>
-                    <div class="code-display" id="qrCodeDisplay" style="display:none">
+                <div class="qr-result" id="qrCompanyResult" style="display:none">
+                    <img id="qrCompanyImage" src="" alt="QR Code" width="300" height="300">
+                    <p id="qrCompanyLabel"></p>
+                    <div class="code-display" id="qrCodeDisplay">
                         <div class="code" id="qrCodeText"></div>
                         <div class="code-label">Codigo da empresa</div>
                     </div>
-                    <button class="btn btn-success btn-block" onclick="downloadQR()" style="margin-top:12px">
+                    <button class="btn btn-success btn-block" onclick="downloadQRImage('qrCompanyImage', 'qrCompany')" style="margin-top:12px">
+                        Baixar QR Code (PNG)
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Treinamento -->
+            <div class="card" id="qrTrainingCard" style="display:none">
+                <h2>QR Code do Treinamento</h2>
+                <p style="color:#888;font-size:14px;margin-bottom:20px">Cole o link do Google Drive com as fotos do treinamento e gere o QR Code para o certificado.</p>
+
+                <div class="form-group">
+                    <label>Nome do treinamento</label>
+                    <input type="text" id="qrTrainingName" placeholder="Ex: NR-35 Turma A - 06/05/2026">
+                </div>
+
+                <div class="form-group">
+                    <label>Link do Google Drive</label>
+                    <input type="text" id="qrTrainingLink" placeholder="https://drive.google.com/drive/folders/...">
+                    <p class="form-hint">Compartilhe a pasta como "Qualquer pessoa com o link" antes de colar aqui</p>
+                </div>
+
+                <div id="qrTrainingAlert"></div>
+
+                <button class="btn btn-primary btn-block" onclick="generateTrainingQR()">
+                    Gerar QR Code
+                </button>
+
+                <div class="qr-result" id="qrTrainingResult" style="display:none">
+                    <img id="qrTrainingImage" src="" alt="QR Code" width="300" height="300">
+                    <p id="qrTrainingLabel"></p>
+                    <button class="btn btn-success btn-block" onclick="downloadQRImage('qrTrainingImage', 'qrTrainingName')" style="margin-top:12px">
                         Baixar QR Code (PNG)
                     </button>
                 </div>
@@ -577,7 +615,7 @@
             <input type="hidden" id="editingId">
 
             <div class="form-group">
-                <label>Empresa *</label>
+                <label>Empresa (opcional)</label>
                 <select id="fCompany">
                     <option value="">Selecione uma empresa...</option>
                 </select>
@@ -988,8 +1026,8 @@
         var alertEl = document.getElementById("formAlert");
         var btn = document.getElementById("btnSaveTraining");
 
-        if (!companyId || !title || !date) {
-            alertEl.innerHTML = '<div class="alert alert-error">Preencha empresa, titulo e data.</div>';
+        if (!title || !date) {
+            alertEl.innerHTML = '<div class="alert alert-error">Preencha titulo e data.</div>';
             return;
         }
 
@@ -1237,10 +1275,18 @@
     }
 
     // ===== QR CODE =====
+    function switchQrMode(mode) {
+        var tabs = document.querySelectorAll("#tabQrcode .tab");
+        tabs.forEach(function(t) { t.classList.remove("active"); });
+        event.target.classList.add("active");
+        document.getElementById("qrCompanyCard").style.display = mode === "company" ? "block" : "none";
+        document.getElementById("qrTrainingCard").style.display = mode === "training" ? "block" : "none";
+    }
+
     function generateCompanyQR() {
         var companyId = document.getElementById("qrCompany").value;
-        var alertEl = document.getElementById("qrAlert");
-        var result = document.getElementById("qrResult");
+        var alertEl = document.getElementById("qrCompanyAlert");
+        var result = document.getElementById("qrCompanyResult");
 
         alertEl.innerHTML = "";
         result.style.display = "none";
@@ -1256,11 +1302,11 @@
         var link = SITE_URL + "?code=" + encodeURIComponent(company.data.code);
         var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
 
-        var img = document.getElementById("qrImage");
+        var img = document.getElementById("qrCompanyImage");
         img.src = qrUrl;
         img.onload = function() {
             result.style.display = "block";
-            document.getElementById("qrLabel").textContent = company.data.name;
+            document.getElementById("qrCompanyLabel").textContent = company.data.name;
             document.getElementById("qrCodeDisplay").style.display = "block";
             document.getElementById("qrCodeText").textContent = company.data.code;
         };
@@ -1269,14 +1315,53 @@
         };
     }
 
-    function downloadQR() {
-        var img = document.getElementById("qrImage");
-        var company = companiesCache.find(function(c) { return c.id === document.getElementById("qrCompany").value; });
-        var fileName = company
-            ? "qrcode-" + company.data.name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
-            : "qrcode-empresa.png";
+    function generateTrainingQR() {
+        var link = document.getElementById("qrTrainingLink").value.trim();
+        var name = document.getElementById("qrTrainingName").value.trim();
+        var alertEl = document.getElementById("qrTrainingAlert");
+        var result = document.getElementById("qrTrainingResult");
 
-        // Baixar direto da API para evitar erro de CORS com canvas
+        alertEl.innerHTML = "";
+        result.style.display = "none";
+
+        if (!link) {
+            alertEl.innerHTML = '<div class="alert alert-error">Cole o link do Google Drive.</div>';
+            return;
+        }
+
+        if (!link.startsWith("http")) {
+            alertEl.innerHTML = '<div class="alert alert-error">O link precisa comecar com http:// ou https://</div>';
+            return;
+        }
+
+        var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=" + encodeURIComponent(link);
+        var img = document.getElementById("qrTrainingImage");
+        img.src = qrUrl;
+        img.onload = function() {
+            result.style.display = "block";
+            document.getElementById("qrTrainingLabel").textContent = name || "QR Code gerado";
+        };
+        img.onerror = function() {
+            alertEl.innerHTML = '<div class="alert alert-error">Erro ao gerar QR Code. Verifique sua conexao.</div>';
+        };
+    }
+
+    function downloadQRImage(imgId, nameSourceId) {
+        var img = document.getElementById(imgId);
+        var nameEl = document.getElementById(nameSourceId);
+        var name = "";
+        if (nameEl) {
+            if (nameEl.tagName === "SELECT") {
+                var company = companiesCache.find(function(c) { return c.id === nameEl.value; });
+                name = company ? company.data.name : "";
+            } else {
+                name = nameEl.value;
+            }
+        }
+        var fileName = name
+            ? "qrcode-" + name.replace(/[^a-zA-Z0-9\-_ ]/g, "").replace(/\s+/g, "-").toLowerCase() + ".png"
+            : "qrcode.png";
+
         var a = document.createElement("a");
         a.href = img.src;
         a.download = fileName;
