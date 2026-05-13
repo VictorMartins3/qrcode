@@ -438,7 +438,6 @@
     <div class="container">
         <div class="tabs">
             <button class="tab active" onclick="switchTab('companies')">Empresas</button>
-            <button class="tab" onclick="switchTab('trainings')">Treinamentos</button>
             <button class="tab" onclick="switchTab('qrcode')">Gerar QR Code</button>
         </div>
 
@@ -448,14 +447,6 @@
                 <div class="stat-card">
                     <div class="stat-number" id="statCompanies">0</div>
                     <div class="stat-label">Empresas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statTrainings">0</div>
-                    <div class="stat-label">Treinamentos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statCertificates">0</div>
-                    <div class="stat-label">Certificados</div>
                 </div>
             </div>
 
@@ -467,21 +458,6 @@
                 <div id="companyList">
                     <div class="empty-state">
                         <p>Nenhuma empresa cadastrada ainda.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: Treinamentos -->
-        <div id="tabTrainings" style="display:none">
-            <div class="card">
-                <div class="top-bar">
-                    <h2>Treinamentos</h2>
-                    <button class="btn btn-primary btn-sm" onclick="showSection('formSection'); clearForm();">+ Novo</button>
-                </div>
-                <div id="trainingList">
-                    <div class="empty-state">
-                        <p>Nenhum treinamento cadastrado ainda.</p>
                     </div>
                 </div>
             </div>
@@ -749,13 +725,9 @@
     // ===== DASHBOARD =====
     async function loadDashboard() {
         try {
-            var cmpSnap = await db.collection("companies").orderBy("createdAt", "desc").get();
-            var tSnap = await db.collection("trainings").orderBy("createdAt", "desc").get();
-            var certSnap = await db.collection("certificates").get();
+            var cmpSnap = await db.collection("companies").get();
 
             document.getElementById("statCompanies").textContent = cmpSnap.size;
-            document.getElementById("statTrainings").textContent = tSnap.size;
-            document.getElementById("statCertificates").textContent = certSnap.size;
 
             // Cache companies
             companiesCache = cmpSnap.docs.map(function(d) { return { id: d.id, data: d.data() }; });
@@ -772,44 +744,14 @@
                 var html = "";
                 cmpSnap.docs.forEach(function(doc) {
                     var c = doc.data();
-                    var count = trainingsByCompany[doc.id] || 0;
                     html += '<div class="training-item" onclick="openCompanyDetail(\'' + doc.id + '\')">' +
                         '<div class="training-info">' +
                             '<h4>' + escHtml(c.name) + '</h4>' +
-                            '<p><span class="company-code">' + escHtml(c.code) + '</span></p>' +
                         '</div>' +
                         '<span class="company-code">' + escHtml(c.code) + '</span>' +
                     '</div>';
                 });
                 document.getElementById("companyList").innerHTML = html;
-            }
-
-            // Count certs per training
-            var certCounts = {};
-            certSnap.docs.forEach(function(d) {
-                var tid = d.data().trainingId;
-                certCounts[tid] = (certCounts[tid] || 0) + 1;
-            });
-
-            // Render trainings
-            if (tSnap.empty) {
-                document.getElementById("trainingList").innerHTML =
-                    '<div class="empty-state"><p>Nenhum treinamento cadastrado.</p>' +
-                    '<button class="btn btn-primary btn-sm" onclick="showSection(\'formSection\'); clearForm();">Criar Primeiro Treinamento</button></div>';
-            } else {
-                var html2 = "";
-                tSnap.docs.forEach(function(doc) {
-                    var t = doc.data();
-                    var count = certCounts[doc.id] || 0;
-                    html2 += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
-                        '<div class="training-info">' +
-                            '<h4>' + escHtml(t.title) + '</h4>' +
-                            '<p>' + escHtml(formatDate(t.date)) + (t.location ? ' &mdash; ' + escHtml(t.location) : '') + '</p>' +
-                        '</div>' +
-                        '<span class="training-count">' + count + ' certificado' + (count !== 1 ? 's' : '') + '</span>' +
-                    '</div>';
-                });
-                document.getElementById("trainingList").innerHTML = html2;
             }
 
         } catch (e) {
@@ -1210,9 +1152,8 @@
 
     // ===== TABS =====
     function switchTab(tab) {
-        document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+        document.querySelectorAll("#dashboardSection > .container > .tabs > .tab").forEach(function(t) { t.classList.remove("active"); });
         document.getElementById("tabCompanies").style.display = tab === "companies" ? "block" : "none";
-        document.getElementById("tabTrainings").style.display = tab === "trainings" ? "block" : "none";
         document.getElementById("tabQrcode").style.display = tab === "qrcode" ? "block" : "none";
         event.target.classList.add("active");
     }
