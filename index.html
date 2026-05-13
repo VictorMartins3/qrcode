@@ -3,243 +3,981 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treinamentos - SegureCare</title>
+    <title>SegureCare - Assessoria em Saude e Seguranca do Trabalho</title>
+    <meta name="description" content="Assessoria e consultoria em saude e seguranca do trabalho. Laudos, treinamentos NR, medicina ocupacional e consultoria tecnica.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --dark: #002c2c;
+            --accent: #00cec5;
+            --accent-soft: rgba(0, 206, 197, 0.12);
+            --white: #ffffff;
+            --gray-50: #f7fafa;
+            --gray-100: #e8f0f0;
+            --gray-400: #7a9494;
+            --gray-600: #4a6565;
+            --gray-800: #1a3333;
+        }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--gray-800);
+            background: var(--white);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== NAV ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0 24px;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .nav.scrolled {
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 1px 24px rgba(0,44,44,0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .nav-logo img {
+            height: 48px;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            letter-spacing: 0.2px;
+            transition: color 0.2s;
+        }
+
+        .nav.scrolled .nav-links a { color: var(--gray-600); }
+        .nav-links a:hover { color: var(--accent); }
+
+        .nav-cta {
+            padding: 10px 24px !important;
+            background: var(--accent);
+            color: var(--dark) !important;
+            border-radius: 8px;
+            font-weight: 600 !important;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 206, 197, 0.4);
+            color: var(--dark) !important;
+        }
+
+        .nav.scrolled .nav-cta { color: var(--dark) !important; }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--white);
+            margin: 6px 0;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .nav.scrolled .menu-toggle span { background: var(--dark); }
+
+        /* ===== HERO ===== */
+        .hero {
             min-height: 100vh;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #0f4c81, #16a085);
-            color: #fff;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,206,197,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0,206,197,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 24px 80px;
+            position: relative;
+            z-index: 1;
+            width: 100%;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--accent-soft);
+            border: 1px solid rgba(0, 206, 197, 0.25);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 32px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.08;
+            margin-bottom: 24px;
+            max-width: 720px;
+            letter-spacing: -1.5px;
+        }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--gray-400);
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 48px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 206, 197, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 80px;
+            padding-top: 48px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hero-stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
+
+        .hero-stat-label {
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ===== SECTIONS ===== */
+        section {
+            padding: 120px 24px;
+        }
+
+        .section-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            max-width: 600px;
+        }
+
+        .section-desc {
+            font-size: 17px;
+            color: var(--gray-600);
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 64px;
+        }
+
+        /* ===== SERVICES ===== */
+        .services { background: var(--gray-50); }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .service-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 36px 28px;
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,44,44,0.08);
+            border-color: transparent;
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-soft);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .service-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .service-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .service-card p {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.65;
+        }
+
+        .service-items {
+            list-style: none;
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .service-items li {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .service-items li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 7px;
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* ===== ABOUT ===== */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .about-content .section-label,
+        .about-content .section-title,
+        .about-content .section-desc { margin-bottom: 16px; }
+        .about-content .section-desc { margin-bottom: 40px; }
+
+        .about-features {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .about-feature {
+            display: flex;
+            gap: 16px;
+        }
+
+        .about-feature-icon {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            background: var(--accent-soft);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .about-feature-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--accent);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .about-feature h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .about-feature p {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .about-visual {
+            background: var(--dark);
+            border-radius: 24px;
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-visual::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0,206,197,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .about-visual-logo {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            padding: 48px 20px 40px;
         }
 
-        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-        .header p { font-size: 15px; opacity: 0.85; }
+        .about-visual-logo img {
+            width: 180px;
+            margin-bottom: 32px;
+            opacity: 0.9;
+        }
 
-        .search-box {
-            max-width: 480px;
-            margin: -28px auto 0;
-            padding: 0 20px;
+        .about-visual-quote {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--white);
+            text-align: center;
+            line-height: 1.5;
             position: relative;
             z-index: 1;
         }
 
-        .search-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-            padding: 24px;
+        .about-visual-quote span { color: var(--accent); }
+
+        .about-visual-author {
+            text-align: center;
+            margin-top: 24px;
+            position: relative;
+            z-index: 1;
         }
 
-        .input-group {
+        .about-visual-author strong {
+            font-size: 15px;
+            color: var(--white);
+            display: block;
+        }
+
+        .about-visual-author span {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+
+        /* ===== NRs ===== */
+        .nrs { background: var(--dark); }
+
+        .nrs .section-label { color: var(--accent); }
+        .nrs .section-title { color: var(--white); }
+        .nrs .section-desc { color: var(--gray-400); }
+
+        .nr-tags {
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 48px;
         }
 
-        .input-group input {
-            flex: 1;
-            padding: 14px 16px;
-            border: 2px solid #e0e0e0;
+        .nr-tag {
+            padding: 12px 24px;
+            background: rgba(0,206,197,0.08);
+            border: 1px solid rgba(0,206,197,0.2);
             border-radius: 10px;
             font-size: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.5px;
         }
 
-        .input-group input:focus { border-color: #0f4c81; }
-
-        .input-group input::placeholder { color: #aaa; text-transform: none; letter-spacing: normal; }
-
-        .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 10px;
+        .nr-note {
             font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            white-space: nowrap;
+            color: var(--gray-400);
+            line-height: 1.7;
+            max-width: 600px;
         }
 
-        .btn:hover { opacity: 0.9; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #0f4c81, #16a085);
-            color: #fff;
+        /* ===== CTA ===== */
+        .cta {
+            background: var(--gray-50);
         }
 
-        .content {
-            max-width: 480px;
-            margin: 24px auto;
-            padding: 0 20px;
-        }
-
-        .message {
+        .cta-box {
+            background: var(--dark);
+            border-radius: 24px;
+            padding: 80px;
             text-align: center;
-            padding: 32px 16px;
-            color: #888;
-            font-size: 14px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .message.error { color: #e74c3c; }
-
-        .company-header {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 20px;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .company-header h2 {
-            font-size: 20px;
-            color: #0f4c81;
-            margin-bottom: 4px;
-        }
-
-        .company-header p {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 32px 20px;
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .footer a { color: #0f4c81; text-decoration: none; }
-        .footer a:hover { text-decoration: underline; }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #0f4c81;
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,206,197,0.12) 0%, transparent 60%);
             border-radius: 50%;
-            animation: spin 0.6s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .cta-box h2 {
+            font-size: clamp(28px, 4vw, 40px);
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
 
-        @media (max-width: 480px) {
-            .input-group { flex-direction: column; }
-            .btn { width: 100%; }
+        .cta-box p {
+            font-size: 17px;
+            color: var(--gray-400);
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-box .btn {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--dark);
+            padding: 64px 24px 32px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 48px;
+        }
+
+        .footer-brand img { height: 44px; margin-bottom: 16px; }
+
+        .footer-brand p {
+            font-size: 14px;
+            color: var(--gray-400);
+            max-width: 280px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 64px;
+        }
+
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-col a {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover { color: var(--accent); }
+
+        .footer-bottom {
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 960px) {
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+            .about-grid { grid-template-columns: 1fr; gap: 48px; }
+            .hero-stats { gap: 32px; }
+            .footer-top { flex-direction: column; gap: 40px; }
+            .footer-links { gap: 40px; }
+            .cta-box { padding: 48px 32px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: var(--white);
+                padding: 24px;
+                gap: 16px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            }
+            .nav-links.open a { color: var(--gray-800); }
+            .menu-toggle { display: block; }
+            .services-grid { grid-template-columns: 1fr; }
+            .hero-stats { flex-wrap: wrap; gap: 24px; }
+            .hero-stat { min-width: 120px; }
+            section { padding: 80px 24px; }
+            .footer-links { flex-wrap: wrap; }
+            .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+            .nr-tags { gap: 8px; }
+            .nr-tag { padding: 10px 18px; font-size: 14px; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Treinamentos</h1>
-        <p>Digite o codigo da empresa para ver os treinamentos</p>
-    </div>
 
-    <div class="search-box">
-        <div class="search-card">
-            <div class="input-group">
-                <input type="text" id="codeInput" placeholder="Codigo da empresa" autocomplete="off">
-                <button class="btn btn-primary" id="btnSearch" onclick="searchByCode()">Buscar</button>
+<!-- NAV -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">
+            <img src="assets/logo-white.png" alt="SegureCare" id="navLogo">
+        </a>
+        <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="#servicos">Servicos</a></li>
+            <li><a href="#sobre">Sobre</a></li>
+            <li><a href="#treinamentos">Treinamentos</a></li>
+            <li><a href="#contato">Contato</a></li>
+            <li><a href="treinamentos.html" class="nav-cta">Area do Cliente</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">Assessoria em Saude e Seguranca do Trabalho</div>
+        <h1>O cuidado que a sua empresa <span>merece</span></h1>
+        <p class="hero-sub">Solucoes completas em seguranca do trabalho, medicina ocupacional e conformidade com as Normas Regulamentadoras. Parceria, agilidade e resultado.</p>
+        <div class="hero-actions">
+            <a href="https://wa.me/5500000000000" class="btn btn-primary" target="_blank">Falar com especialista</a>
+            <a href="#servicos" class="btn btn-outline">Nossos servicos</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-number">17+</div>
+                <div class="hero-stat-label">NRs atendidas</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">100%</div>
+                <div class="hero-stat-label">Conformidade legal</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">E-Social</div>
+                <div class="hero-stat-label">Integrado</div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="content" id="results"></div>
+<!-- SERVICES -->
+<section class="services" id="servicos">
+    <div class="section-inner">
+        <div class="section-label">Servicos</div>
+        <h2 class="section-title">Tudo que sua empresa precisa em um so lugar</h2>
+        <p class="section-desc">Pacotes personalizaveis para manter sua empresa 100% em conformidade, sem burocracia e sem surpresas.</p>
 
-    <div class="footer">
-        <a href="admin.html">Area Administrativa</a>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h3>Laudos e Programas</h3>
+                <p>Elaboracao tecnica de documentacao obrigatoria para sua empresa.</p>
+                <ul class="service-items">
+                    <li>PGR</li>
+                    <li>PCMSO</li>
+                    <li>LTCAT</li>
+                    <li>LTIP</li>
+                    <li>Ordem de Servico</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3>Treinamentos NR</h3>
+                <p>Treinamentos teoricos e praticos, personalizados conforme a atividade e riscos de cada empresa.</p>
+                <ul class="service-items">
+                    <li>NR 05, 06, 10, 11</li>
+                    <li>NR 12, 18, 33, 35</li>
+                    <li>Certificados e registros</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <h3>Medicina do Trabalho</h3>
+                <p>Exames ocupacionais e acompanhamento completo da saude dos colaboradores.</p>
+                <ul class="service-items">
+                    <li>ASOs</li>
+                    <li>Exames complementares</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3>Consultoria e Assessoria</h3>
+                <p>Orientacao tecnica especializada e acompanhamento contínuo.</p>
+                <ul class="service-items">
+                    <li>Visitas tecnicas</li>
+                    <li>Orientacao</li>
+                    <li>Acompanhamento em pericias</li>
+                </ul>
+            </div>
+        </div>
     </div>
+</section>
 
-    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.firestore();
+<!-- ABOUT -->
+<section id="sobre">
+    <div class="section-inner">
+        <div class="about-grid">
+            <div class="about-content">
+                <div class="section-label">Sobre nos</div>
+                <h2 class="section-title">Voce nao contrata apenas um servico</h2>
+                <p class="section-desc">Contrata parceria, agilidade e resultado. Atendimento proximo, claro e confiavel, orientando sua empresa em cada etapa.</p>
 
-        // Checar se veio com codigo na URL (via QR code)
-        var params = new URLSearchParams(window.location.search);
-        var urlCode = params.get("code");
-        if (urlCode) {
-            document.getElementById("codeInput").value = urlCode.toUpperCase();
-            searchByCode();
+                <div class="about-features">
+                    <div class="about-feature">
+                        <div class="about-feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <h4>Pacotes personalizaveis</h4>
+                            <p>Solucoes sob medida para a real necessidade de cada cliente.</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <h4>Equipe qualificada</h4>
+                            <p>Profissionais experientes preparados para todos os portes e segmentos.</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <h4>Integrado ao E-Social</h4>
+                            <p>Todas as alteracoes sao repassadas instantaneamente ao E-Social.</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div>
+                            <h4>Flexibilidade de atendimento</h4>
+                            <p>Atendemos em nossa estrutura ou diretamente na sua empresa.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-visual">
+                <div class="about-visual-logo">
+                    <img src="assets/logo-white.png" alt="SegureCare">
+                    <div class="about-visual-quote">"Prevencao de acidentes, reducao de riscos e fortalecimento da <span>cultura de seguranca</span>"</div>
+                    <div class="about-visual-author">
+                        <strong>Dieison Santos</strong>
+                        <span>Diretor Tecnico</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TREINAMENTOS NRs -->
+<section class="nrs" id="treinamentos">
+    <div class="section-inner">
+        <div class="section-label">Treinamentos</div>
+        <h2 class="section-title">Normas Regulamentadoras</h2>
+        <p class="section-desc">Nosso portfolio abrange as principais NRs exigidas pelo Ministerio do Trabalho.</p>
+
+        <div class="nr-tags">
+            <span class="nr-tag">NR 05</span>
+            <span class="nr-tag">NR 06</span>
+            <span class="nr-tag">NR 10</span>
+            <span class="nr-tag">NR 11</span>
+            <span class="nr-tag">NR 12</span>
+            <span class="nr-tag">NR 18</span>
+            <span class="nr-tag">NR 33</span>
+            <span class="nr-tag">NR 35</span>
+        </div>
+
+        <p class="nr-note">Treinamentos teoricos e praticos, atendendo integralmente aos requisitos das Normas Regulamentadoras. Com emissao de certificados, listas de presenca e registros obrigatorios.</p>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contato">
+    <div class="section-inner">
+        <div class="cta-box">
+            <h2>Pronto para regularizar sua empresa?</h2>
+            <p>Entre em contato e receba uma proposta personalizada para as necessidades da sua empresa.</p>
+            <div class="cta-actions">
+                <a href="https://wa.me/5500000000000" class="btn btn-primary" target="_blank">Falar pelo WhatsApp</a>
+                <a href="treinamentos.html" class="btn btn-outline">Area do Cliente</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <img src="assets/logo-white.png" alt="SegureCare">
+                <p>Assessoria e consultoria em saude e seguranca do trabalho.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Navegacao</h4>
+                    <ul>
+                        <li><a href="#servicos">Servicos</a></li>
+                        <li><a href="#sobre">Sobre</a></li>
+                        <li><a href="#treinamentos">Treinamentos</a></li>
+                        <li><a href="#contato">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Servicos</h4>
+                    <ul>
+                        <li><a href="#servicos">Laudos e Programas</a></li>
+                        <li><a href="#servicos">Treinamentos NR</a></li>
+                        <li><a href="#servicos">Medicina do Trabalho</a></li>
+                        <li><a href="#servicos">Consultoria</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Acesso</h4>
+                    <ul>
+                        <li><a href="treinamentos.html">Area do Cliente</a></li>
+                        <li><a href="admin.html">Painel Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>SegureCare - O cuidado que a sua empresa merece</p>
+            <p>CNPJ: 00.000.000/0000-00</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Nav scroll effect
+    var nav = document.getElementById('nav');
+    var logo = document.getElementById('navLogo');
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 60) {
+            nav.classList.add('scrolled');
+            logo.src = 'assets/logo.png';
+        } else {
+            nav.classList.remove('scrolled');
+            logo.src = 'assets/logo-white.png';
         }
-
-        document.getElementById("codeInput").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") searchByCode();
-        });
-
-        async function searchByCode() {
-            var code = document.getElementById("codeInput").value.trim().toUpperCase();
-            var results = document.getElementById("results");
-            var btn = document.getElementById("btnSearch");
-
-            if (!code) {
-                results.innerHTML = '<div class="message error">Digite o codigo da empresa</div>';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = "";
-            btn.innerHTML = '<span class="spinner"></span>';
-            results.innerHTML = "";
-
-            try {
-                // Buscar empresa pelo codigo
-                var companySnap = await db.collection("companies")
-                    .where("code", "==", code)
-                    .limit(1)
-                    .get();
-
-                if (companySnap.empty) {
-                    results.innerHTML = '<div class="message error">Codigo nao encontrado. Verifique o codigo e tente novamente.</div>';
-                    return;
-                }
-
-                var company = companySnap.docs[0].data();
-
-                if (company.driveUrl) {
-                    // Redirecionar para o Drive da empresa
-                    results.innerHTML = '<div class="company-header">' +
-                        '<h2>' + escHtml(company.name) + '</h2>' +
-                        '<p>Redirecionando para os treinamentos...</p>' +
-                    '</div>';
-                    window.location.href = company.driveUrl;
-                } else {
-                    results.innerHTML = '<div class="message error">Esta empresa ainda nao tem um link de treinamentos configurado.</div>';
-                }
-
-            } catch (e) {
-                console.error(e);
-                results.innerHTML = '<div class="message error">Erro ao buscar. Tente novamente.</div>';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Buscar";
-            }
-        }
-
-        function escHtml(s) {
-            var d = document.createElement("div");
-            d.textContent = s || "";
-            return d.innerHTML;
-        }
-
-        function escAttr(s) {
-            return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-    </script>
+    });
+</script>
 </body>
 </html>
