@@ -114,69 +114,6 @@
             color: #888;
         }
 
-        .training-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 20px;
-            margin-bottom: 12px;
-            transition: box-shadow 0.2s;
-        }
-
-        .training-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-
-        .training-card h3 {
-            font-size: 16px;
-            color: #1a1a2e;
-            margin-bottom: 8px;
-        }
-
-        .training-meta {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-
-        .training-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-sm {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-
-        .btn-sm:hover { opacity: 0.9; }
-
-        .btn-view {
-            background: #0f4c81;
-            color: #fff;
-        }
-
-        .btn-photos {
-            background: #16a085;
-            color: #fff;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-
         .footer {
             text-align: center;
             padding: 32px 20px;
@@ -273,63 +210,25 @@
                 }
 
                 var company = companySnap.docs[0].data();
-                var companyId = companySnap.docs[0].id;
 
-                // Buscar treinamentos da empresa
-                var trainingsSnap = await db.collection("trainings")
-                    .where("companyId", "==", companyId)
-                    .orderBy("createdAt", "desc")
-                    .get();
-
-                var html = '<div class="company-header">' +
-                    '<h2>' + escHtml(company.name) + '</h2>' +
-                    '<p>' + trainingsSnap.size + ' treinamento' + (trainingsSnap.size !== 1 ? 's' : '') + ' registrado' + (trainingsSnap.size !== 1 ? 's' : '') + '</p>' +
-                '</div>';
-
-                if (trainingsSnap.empty) {
-                    html += '<div class="message">Nenhum treinamento registrado para esta empresa ainda.</div>';
-                    results.innerHTML = html;
-                    return;
+                if (company.driveUrl) {
+                    // Redirecionar para o Drive da empresa
+                    results.innerHTML = '<div class="company-header">' +
+                        '<h2>' + escHtml(company.name) + '</h2>' +
+                        '<p>Redirecionando para os treinamentos...</p>' +
+                    '</div>';
+                    window.location.href = company.driveUrl;
+                } else {
+                    results.innerHTML = '<div class="message error">Esta empresa ainda nao tem um link de treinamentos configurado.</div>';
                 }
-
-                trainingsSnap.docs.forEach(function(doc) {
-                    var t = doc.data();
-                    html += renderTrainingCard(doc.id, t);
-                });
-
-                results.innerHTML = html;
 
             } catch (e) {
                 console.error(e);
-                results.innerHTML = '<div class="message error">Erro ao buscar treinamentos. Tente novamente.</div>';
+                results.innerHTML = '<div class="message error">Erro ao buscar. Tente novamente.</div>';
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Buscar";
             }
-        }
-
-        function renderTrainingCard(id, training) {
-            var date = training.date ? formatDate(training.date) : "";
-            var photosBtn = training.photosUrl
-                ? '<a href="' + escAttr(training.photosUrl) + '" target="_blank" class="btn-sm btn-photos">Ver Fotos</a>'
-                : "";
-
-            return '<div class="training-card">' +
-                '<span class="badge">Treinamento Registrado</span>' +
-                '<h3>' + escHtml(training.title || "Treinamento") + '</h3>' +
-                '<div class="training-meta">' +
-                    (date ? 'Data: ' + escHtml(date) + '<br>' : '') +
-                    (training.duration ? 'Carga Horaria: ' + escHtml(training.duration) + '<br>' : '') +
-                    (training.instructor ? 'Instrutor: ' + escHtml(training.instructor) : '') +
-                '</div>' +
-                (photosBtn ? '<div class="training-actions">' + photosBtn + '</div>' : '') +
-            '</div>';
-        }
-
-        function formatDate(dateStr) {
-            var parts = dateStr.split("-");
-            if (parts.length === 3) return parts[2] + "/" + parts[1] + "/" + parts[0];
-            return dateStr;
         }
 
         function escHtml(s) {

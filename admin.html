@@ -574,6 +574,12 @@
             </div>
 
             <div class="form-group">
+                <label>Link do Google Drive *</label>
+                <input type="text" id="fcDriveUrl" placeholder="https://drive.google.com/drive/folders/...">
+                <p class="form-hint">Pasta com os treinamentos da empresa. Compartilhe como "Qualquer pessoa com o link"</p>
+            </div>
+
+            <div class="form-group">
                 <label>Codigo da Empresa</label>
                 <input type="text" id="fcCode" placeholder="Gerado automaticamente" style="text-transform:uppercase;letter-spacing:2px;font-weight:700">
                 <p class="form-hint">Deixe em branco para gerar automaticamente, ou digite um codigo personalizado</p>
@@ -593,16 +599,6 @@
     <div class="container">
         <a class="back-link" onclick="showSection('dashboardSection'); loadDashboard();">&#8592; Voltar</a>
         <div class="card" id="companyDetail"></div>
-        <div class="card">
-            <div class="top-bar">
-                <h3>Treinamentos desta Empresa</h3>
-            </div>
-            <div id="companyTrainingList">
-                <div class="empty-state">
-                    <p>Nenhum treinamento associado.</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -613,13 +609,6 @@
         <div class="card">
             <h2 id="formTitle">Novo Treinamento</h2>
             <input type="hidden" id="editingId">
-
-            <div class="form-group">
-                <label>Empresa (opcional)</label>
-                <select id="fCompany">
-                    <option value="">Selecione uma empresa...</option>
-                </select>
-            </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -774,13 +763,6 @@
             // Populate company selects
             populateCompanySelects();
 
-            // Count trainings per company
-            var trainingsByCompany = {};
-            tSnap.docs.forEach(function(d) {
-                var cid = d.data().companyId;
-                if (cid) trainingsByCompany[cid] = (trainingsByCompany[cid] || 0) + 1;
-            });
-
             // Render companies
             if (cmpSnap.empty) {
                 document.getElementById("companyList").innerHTML =
@@ -796,7 +778,7 @@
                             '<h4>' + escHtml(c.name) + '</h4>' +
                             '<p><span class="company-code">' + escHtml(c.code) + '</span></p>' +
                         '</div>' +
-                        '<span class="training-count">' + count + ' treinamento' + (count !== 1 ? 's' : '') + '</span>' +
+                        '<span class="company-code">' + escHtml(c.code) + '</span>' +
                     '</div>';
                 });
                 document.getElementById("companyList").innerHTML = html;
@@ -809,10 +791,6 @@
                 certCounts[tid] = (certCounts[tid] || 0) + 1;
             });
 
-            // Build company name map
-            var companyNames = {};
-            cmpSnap.docs.forEach(function(d) { companyNames[d.id] = d.data().name; });
-
             // Render trainings
             if (tSnap.empty) {
                 document.getElementById("trainingList").innerHTML =
@@ -823,11 +801,10 @@
                 tSnap.docs.forEach(function(doc) {
                     var t = doc.data();
                     var count = certCounts[doc.id] || 0;
-                    var companyName = companyNames[t.companyId] || "Sem empresa";
                     html2 += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
                         '<div class="training-info">' +
                             '<h4>' + escHtml(t.title) + '</h4>' +
-                            '<p>' + escHtml(formatDate(t.date)) + ' &mdash; ' + escHtml(companyName) + '</p>' +
+                            '<p>' + escHtml(formatDate(t.date)) + (t.location ? ' &mdash; ' + escHtml(t.location) : '') + '</p>' +
                         '</div>' +
                         '<span class="training-count">' + count + ' certificado' + (count !== 1 ? 's' : '') + '</span>' +
                     '</div>';
@@ -841,7 +818,7 @@
     }
 
     function populateCompanySelects() {
-        var selects = [document.getElementById("fCompany"), document.getElementById("qrCompany")];
+        var selects = [document.getElementById("qrCompany")];
         selects.forEach(function(sel) {
             if (!sel) return;
             var val = sel.value;
@@ -858,6 +835,7 @@
         document.getElementById("companyFormTitle").textContent = "Nova Empresa";
         document.getElementById("editingCompanyId").value = "";
         document.getElementById("fcName").value = "";
+        document.getElementById("fcDriveUrl").value = "";
         document.getElementById("fcCode").value = "";
         document.getElementById("companyFormAlert").innerHTML = "";
     }
@@ -871,12 +849,13 @@
 
     async function saveCompany() {
         var name = document.getElementById("fcName").value.trim();
+        var driveUrl = document.getElementById("fcDriveUrl").value.trim();
         var code = document.getElementById("fcCode").value.trim().toUpperCase();
         var alertEl = document.getElementById("companyFormAlert");
         var btn = document.getElementById("btnSaveCompany");
 
-        if (!name) {
-            alertEl.innerHTML = '<div class="alert alert-error">Preencha o nome da empresa.</div>';
+        if (!name || !driveUrl) {
+            alertEl.innerHTML = '<div class="alert alert-error">Preencha o nome da empresa e o link do Drive.</div>';
             return;
         }
 
@@ -901,6 +880,7 @@
 
             var data = {
                 name: name,
+                driveUrl: driveUrl,
                 code: code,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -928,14 +908,11 @@
         showSection("companyDetailSection");
 
         document.getElementById("companyDetail").innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span></div>';
-        document.getElementById("companyTrainingList").innerHTML = "";
 
         try {
             var doc = await db.collection("companies").doc(companyId).get();
             if (!doc.exists) return;
             var c = doc.data();
-
-            var qrUrl = SITE_URL + "?code=" + encodeURIComponent(c.code);
 
             document.getElementById("companyDetail").innerHTML =
                 '<div class="top-bar">' +
@@ -949,32 +926,9 @@
                     '<div class="code">' + escHtml(c.code) + '</div>' +
                     '<div class="code-label">Codigo da empresa</div>' +
                 '</div>' +
-                '<div style="text-align:center;margin-top:12px">' +
-                    '<p style="font-size:13px;color:#888;margin-bottom:8px">Link: <a href="' + escAttr(qrUrl) + '" target="_blank" style="color:#0f4c81">' + escHtml(qrUrl) + '</a></p>' +
+                '<div style="font-size:14px;color:#666;line-height:1.8;margin-top:12px">' +
+                    '<strong>Link do Drive:</strong> <a href="' + escAttr(c.driveUrl) + '" target="_blank" style="color:#0f4c81">' + escHtml(c.driveUrl) + '</a>' +
                 '</div>';
-
-            // Load trainings for this company
-            var tSnap = await db.collection("trainings")
-                .where("companyId", "==", companyId)
-                .orderBy("createdAt", "desc")
-                .get();
-
-            if (tSnap.empty) {
-                document.getElementById("companyTrainingList").innerHTML =
-                    '<div class="empty-state"><p>Nenhum treinamento associado a esta empresa.</p></div>';
-            } else {
-                var html = "";
-                tSnap.docs.forEach(function(doc) {
-                    var t = doc.data();
-                    html += '<div class="training-item" onclick="openTrainingDetail(\'' + doc.id + '\')">' +
-                        '<div class="training-info">' +
-                            '<h4>' + escHtml(t.title) + '</h4>' +
-                            '<p>' + escHtml(formatDate(t.date)) + (t.instructor ? ' &mdash; ' + escHtml(t.instructor) : '') + '</p>' +
-                        '</div>' +
-                    '</div>';
-                });
-                document.getElementById("companyTrainingList").innerHTML = html;
-            }
 
         } catch (e) {
             console.error(e);
@@ -987,6 +941,7 @@
         document.getElementById("companyFormTitle").textContent = "Editar Empresa";
         document.getElementById("editingCompanyId").value = id;
         document.getElementById("fcName").value = c.name || "";
+        document.getElementById("fcDriveUrl").value = c.driveUrl || "";
         document.getElementById("fcCode").value = c.code || "";
         document.getElementById("companyFormAlert").innerHTML = "";
         showSection("companyFormSection");
@@ -1008,7 +963,6 @@
     function clearForm() {
         document.getElementById("formTitle").textContent = "Novo Treinamento";
         document.getElementById("editingId").value = "";
-        document.getElementById("fCompany").value = "";
         document.getElementById("fTitle").value = "";
         document.getElementById("fDate").value = "";
         document.getElementById("fLocation").value = "";
@@ -1020,7 +974,6 @@
     }
 
     async function saveTraining() {
-        var companyId = document.getElementById("fCompany").value;
         var title = document.getElementById("fTitle").value.trim();
         var date = document.getElementById("fDate").value;
         var alertEl = document.getElementById("formAlert");
@@ -1035,7 +988,6 @@
         btn.innerHTML = '<span class="spinner"></span>';
 
         var data = {
-            companyId: companyId,
             title: title,
             date: date,
             location: document.getElementById("fLocation").value.trim(),
@@ -1079,13 +1031,6 @@
             if (!tDoc.exists) return;
             var t = tDoc.data();
 
-            // Get company name
-            var companyName = "";
-            if (t.companyId) {
-                var cDoc = await db.collection("companies").doc(t.companyId).get();
-                if (cDoc.exists) companyName = cDoc.data().name;
-            }
-
             var photosLink = t.photosUrl
                 ? '<a href="' + escAttr(t.photosUrl) + '" target="_blank" style="color:#16a085;text-decoration:none;font-size:13px">Ver fotos</a>'
                 : '';
@@ -1099,7 +1044,6 @@
                     '</div>' +
                 '</div>' +
                 '<div style="font-size:14px;color:#666;line-height:1.8">' +
-                    (companyName ? '<strong>Empresa:</strong> ' + escHtml(companyName) + '<br>' : '') +
                     (t.date ? '<strong>Data:</strong> ' + escHtml(formatDate(t.date)) + '<br>' : '') +
                     (t.location ? '<strong>Local:</strong> ' + escHtml(t.location) + '<br>' : '') +
                     (t.instructor ? '<strong>Instrutor:</strong> ' + escHtml(t.instructor) + '<br>' : '') +
@@ -1226,7 +1170,6 @@
         var t = doc.data();
         document.getElementById("formTitle").textContent = "Editar Treinamento";
         document.getElementById("editingId").value = id;
-        document.getElementById("fCompany").value = t.companyId || "";
         document.getElementById("fTitle").value = t.title || "";
         document.getElementById("fDate").value = t.date || "";
         document.getElementById("fLocation").value = t.location || "";
