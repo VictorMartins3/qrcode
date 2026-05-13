@@ -744,11 +744,14 @@
                 var html = "";
                 cmpSnap.docs.forEach(function(doc) {
                     var c = doc.data();
-                    html += '<div class="training-item" onclick="openCompanyDetail(\'' + doc.id + '\')">' +
-                        '<div class="training-info">' +
+                    html += '<div class="training-item">' +
+                        '<div class="training-info" onclick="openCompanyDetail(\'' + doc.id + '\')" style="cursor:pointer;flex:1">' +
                             '<h4>' + escHtml(c.name) + '</h4>' +
                         '</div>' +
-                        '<span class="company-code">' + escHtml(c.code) + '</span>' +
+                        '<div style="display:flex;gap:8px;align-items:center">' +
+                            '<span class="company-code">' + escHtml(c.code) + '</span>' +
+                            '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteCompany(\'' + doc.id + '\')">X</button>' +
+                        '</div>' +
                     '</div>';
                 });
                 document.getElementById("companyList").innerHTML = html;
